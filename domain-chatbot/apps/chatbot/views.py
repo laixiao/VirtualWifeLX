@@ -279,6 +279,13 @@ def show_system_vrm_models(request):
             "type": "system",
             "original_name": "aili.vrm",
             "vrm": "aili.vrm"
-        }
+        },
+        {
+            "id": "sys_06",
+            "type": "system",
+            "original_name": "K-00024.vrm",
+            "vrm": "K-00024.vrm"
+        },
+        
     ]
     return Response({"response": vrm_models, "code": "200"})

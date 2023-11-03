@@ -54,26 +54,58 @@ export class Viewer {
       this.model.vrm.scene.traverse((obj) => {
         obj.frustumCulled = false;
       });
-      
+
       // 修改相机的位置
       // this._camera?.position.set(0, 0, 2.0);  // 把相机位置设为 (0, 2.6, 3.0) 
 
       this._scene.add(this.model.vrm.scene);
 
-       // 加载所有人物动作
-      this.model.clipMap.set("idle_01",await loadMixamoAnimation(buildUrl("daily/idle_01.fbx"),this.model.vrm))
-      this.model.clipMap.set("idle_02",await loadMixamoAnimation(buildUrl("daily/idle_02.fbx"),this.model.vrm))
-      this.model.clipMap.set("idle_03",await loadMixamoAnimation(buildUrl("daily/idle_03.fbx"),this.model.vrm))
-      this.model.clipMap.set("idle_happy_01",await loadMixamoAnimation(buildUrl("daily/idle_happy_01.fbx"),this.model.vrm))
-      this.model.clipMap.set("idle_happy_02",await loadMixamoAnimation(buildUrl("daily/idle_happy_02.fbx"),this.model.vrm))
-      this.model.clipMap.set("idle_happy_03",await loadMixamoAnimation(buildUrl("daily/idle_happy_03.fbx"),this.model.vrm))
-      this.model.clipMap.set("standing_greeting",await loadMixamoAnimation(buildUrl("daily/standing_greeting.fbx"),this.model.vrm))
-      this.model.clipMap.set("thinking",await loadMixamoAnimation(buildUrl("daily/thinking.fbx"),this.model.vrm))
-      this.model.clipMap.set("excited",await loadMixamoAnimation(buildUrl("emote/excited.fbx"),this.model.vrm))
+      // // 加载所有人物动作
+      // this.model.clipMap.set("idle_01", await loadMixamoAnimation(buildUrl("daily/idle_01.fbx"), this.model.vrm))
+      // this.model.clipMap.set("idle_02", await loadMixamoAnimation(buildUrl("daily/idle_02.fbx"), this.model.vrm))
+      // this.model.clipMap.set("idle_03", await loadMixamoAnimation(buildUrl("daily/idle_03.fbx"), this.model.vrm))
+      // this.model.clipMap.set("idle_happy_01", await loadMixamoAnimation(buildUrl("daily/idle_happy_01.fbx"), this.model.vrm))
+      // this.model.clipMap.set("idle_happy_02", await loadMixamoAnimation(buildUrl("daily/idle_happy_02.fbx"), this.model.vrm))
+      // this.model.clipMap.set("idle_happy_03", await loadMixamoAnimation(buildUrl("daily/idle_happy_03.fbx"), this.model.vrm))
+      // this.model.clipMap.set("standing_greeting", await loadMixamoAnimation(buildUrl("daily/standing_greeting.fbx"), this.model.vrm))
+      // this.model.clipMap.set("thinking", await loadMixamoAnimation(buildUrl("daily/thinking.fbx"), this.model.vrm))
+      // this.model.clipMap.set("excited", await loadMixamoAnimation(buildUrl("emote/excited.fbx"), this.model.vrm))
+
+      // this.model.clipMap.set("Sitting Idle", await loadMixamoAnimation(buildUrl("daily/Sitting Idle.fbx"), this.model.vrm))
+      // this.model.clipMap.set("Dance Snake Hip Hop", await loadMixamoAnimation(buildUrl("daily/Dance Snake Hip Hop.fbx"), this.model.vrm))
+      // this.model.clipMap.set("Dance Thriller Part 2", await loadMixamoAnimation(buildUrl("daily/Dance Thriller Part 2.fbx"), this.model.vrm))
+      // this.model.clipMap.set("Dancing Hip Hop", await loadMixamoAnimation(buildUrl("daily/Dancing Hip Hop.fbx"), this.model.vrm))
+      // this.model.clipMap.set("Standing Arguing", await loadMixamoAnimation(buildUrl("daily/Standing Arguing.fbx"), this.model.vrm))
+
+      const animations = [
+        { name: "idle_01", path: "daily", description: "Basic idle" },
+        { name: "idle_02", path: "daily", description: "Alternate idle" },
+        { name: "idle_03", path: "daily", description: "Variation of idle" },
+        { name: "idle_happy_01", path: "daily", description: "Happy idle 1" },
+        { name: "idle_happy_02", path: "daily", description: "Happy idle 2" },
+        { name: "idle_happy_03", path: "daily", description: "Happy idle 3" },
+        { name: "standing_greeting", path: "daily", description: "Greeting" },
+        { name: "thinking", path: "daily", description: "Thinking pose" },
+        { name: "excited", path: "emote", description: "Excited" },
+        { name: "Sitting Idle", path: "daily", description: "Sitting idle" },
+        { name: "Dance Snake Hip Hop", path: "daily", description: "Snake dance" },
+        { name: "Dance Thriller Part 2", path: "daily", description: "Thriller dance" },
+        { name: "Dancing Hip Hop", path: "daily", description: "Hip hop dance" },
+        { name: "Standing Arguing", path: "daily", description: "Arguing" }
+      ];
+      let loadAnimation = async (animation: { name: string; path: string; description?: string }) => {
+        if (this.model && this.model.vrm) {
+          this.model.clipMap.set(animation.name, await loadMixamoAnimation(buildUrl(`${animation.path}/${animation.name}.fbx`), this.model.vrm));
+        }
+      }
+      for (const animation of animations) {
+        await loadAnimation(animation);
+      }
+
 
       // const vrma = await loadVRMAnimation(buildUrl("/idle_loop.vrma"));
       // if (vrma) this.model.loadAnimation(vrma);
-      this.model.loadFBX("idle_01")
+      this.model.loadFBX("Sitting Idle")
 
       // HACK: アニメーションの原点がずれているので再生後にカメラ位置を調整する
       requestAnimationFrame(() => {

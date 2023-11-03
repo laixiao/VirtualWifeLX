@@ -179,7 +179,7 @@ export default function Home() {
         }
 
 
-        // 如果有，则播放相应动作
+        // 动作：思考 - 弹幕发送
         if (action != null && action != '') {
             handleBehaviorAction(
                 "behavior_action",
@@ -193,12 +193,12 @@ export default function Home() {
         const aiText = content;
         const aiTalks = textsToScreenplay([aiText], koeiroParam, emote);
         aiTextLog += aiText;
-        // 文ごとに音声を生成 & 再生、返答を表示
+        // 生成并播放每个句子的声音，显示回答
         setSubtitle(aiTextLog);
         handleSpeakAi(globalConfig, aiTalks[0], () => {
             // setAssistantMessage(currentAssistantMessage);
             startTypewriterEffect(aiTextLog);
-            // アシスタントの返答をログに追加
+            // 在日志中添加助手的回复
             const params = JSON.parse(
                 window.localStorage.getItem("chatVRMParams") as string
             );
@@ -209,7 +209,7 @@ export default function Home() {
             setChatLog(messageLog);
 
         }, () => {
-            // 语音播放完后需要恢复到原动画
+            // 动作：说完话 - 弹幕发送
             if (action != null && action != '') {
                 handleBehaviorAction(
                     "behavior_action",
@@ -244,7 +244,7 @@ export default function Home() {
     };
 
     /**
-     * アシスタントとの会話を行う
+     * 发送消息
      */
     const handleSendChat = useCallback(
         async (globalConfig: GlobalConfig, type: string, user_name: string, content: string) => {
@@ -253,6 +253,7 @@ export default function Home() {
 
             setChatProcessing(true);
 
+            // 动作：思考 - 主动发送
             handleBehaviorAction(
                 "behavior_action",
                 "thinking",
@@ -260,7 +261,7 @@ export default function Home() {
             );
 
             const yourName = user_name == null || user_name == '' ? globalConfig?.characterConfig?.yourName : user_name
-            // ユーザーの発言を追加して表示
+            // 添加用户的发言并显示
             const messageLog: Message[] = [
                 ...chatLog,
                 { role: "user", content: content, "user_name": yourName },
@@ -274,6 +275,7 @@ export default function Home() {
                 }
             );
 
+            // 动作：说完话 - 主动发送
             handleBehaviorAction(
                 "behavior_action",
                 "idle_01",
