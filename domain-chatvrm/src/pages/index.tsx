@@ -90,7 +90,7 @@ export default function Home() {
             setSystemPrompt(params.systemPrompt);
             setKoeiroParam(params.koeiroParam);
             setChatLog(params.chatLog);
-            setChatList(params.chatList);
+            // setChatList(params.chatList);
         }
     }, []);
 
