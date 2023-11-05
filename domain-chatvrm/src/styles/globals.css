@@ -188,3 +188,29 @@ select {
 input[type="radio"] {
   margin-right: 10px; 
 }
+
+.chat-log-item{
+  max-width: 260px;
+  margin: 5px 0;
+}
+
+.chat-list{
+  margin-bottom: 0px;
+}
+
+.chat-list-item{
+  max-width: 260px;
+  margin: 5px 0;
+}
+
+.bg-color-nocur{
+  opacity: 0.5;
+}
+
+.strikethrough {
+  text-decoration: line-through;
+}
+
+.dis-none{
+  display: none;
+}

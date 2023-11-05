@@ -6,6 +6,8 @@ export type Message = {
   role: "assistant" | "system" | "user";
   content: string;
   user_name: string;
+  expand?: string;
+  time?: number
 };
 
 const talkStyles = [
@@ -29,7 +31,7 @@ const emotions = ["neutral", "happy", "angry", "sad", "relaxed"] as const;
 export type EmotionType = (typeof emotions)[number] & VRMExpressionPresetName;
 
 /**
- * 発話文と音声の感情と、モデルの感情表現がセットになった物
+ * 说话文和声音的感情，模型的感情表现组合起来的东西。
  */
 export type Screenplay = {
   expression: EmotionType;

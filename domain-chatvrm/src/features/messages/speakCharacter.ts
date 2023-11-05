@@ -20,6 +20,12 @@ const createSpeakCharacter = () => {
     onStart?: () => void,
     onComplete?: () => void
   ) => {
+    // 没有中英文则直接返回
+    if (screenplay.talk.message.replace(/[^a-zA-Z\u4e00-\u9fa5]/g, '').trim().length <= 0) {
+      onComplete?.();
+      return;
+    }
+
     const fetchPromise = prevFetchPromise.then(async () => {
       const now = Date.now();
       if (now - lastTime < 1000) {

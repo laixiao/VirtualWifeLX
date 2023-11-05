@@ -1,4 +1,3 @@
-
 import logging
 import queue
 import threading
@@ -11,14 +10,17 @@ logger = logging.getLogger(__name__)
 chat_history_queue = queue.SimpleQueue()
 
 
-class ChatHistoryMessage():
-    '''定义聊天历史消息队列'''
+class ChatHistoryMessage:
+    """定义聊天历史消息队列"""
+
     role_name: str
     role_message: str
     you_name: str
     you_message: str
 
-    def __init__(self, role_name: str, role_message: str, you_name: str, you_message: str) -> None:
+    def __init__(
+        self, role_name: str, role_message: str, you_name: str, you_message: str
+    ) -> None:
         self.role_name = role_name
         self.role_message = role_message
         self.you_name = you_name
@@ -29,12 +31,13 @@ class ChatHistoryMessage():
             "role_name": self.role_name,
             "role_message": self.role_message,
             "you_name": self.you_name,
-            "you_message": self.you_message
+            "you_message": self.you_message,
         }
 
 
 def put_message(message: ChatHistoryMessage):
     global chat_history_queue
+    # logger.info(f"==>消息待存储队列：{chat_history_queue.qsize()}")
     chat_history_queue.put(message)
 
 
@@ -43,23 +46,32 @@ def send_message():
     while True:
         try:
             message = chat_history_queue.get()
-            if (message != None and message != ''):
+            if message != None and message != "":
+                # logger.info(f"==>存储消息：{message.to_dict()}")
                 singleton_sys_config.memory_storage_driver.save(
-                    message.you_name, message.you_message, message.role_name, message.role_message)
+                    message.you_name,
+                    message.you_message,
+                    message.role_name,
+                    message.role_message,
+                )
         except Exception as e:
             traceback.print_exc()
 
 
-def conversation_end_callback(role_name: str,  role_message: str, you_name: str, you_message: str):
-    put_message(ChatHistoryMessage(
-        role_name=role_name,
-        role_message=role_message,
-        you_name=you_name,
-        you_message=you_message
-    ))
+def conversation_end_callback(
+    role_name: str, role_message: str, you_name: str, you_message: str
+):
+    put_message(
+        ChatHistoryMessage(
+            role_name=role_name,
+            role_message=role_message,
+            you_name=you_name,
+            you_message=you_message,
+        )
+    )
 
 
-class ChatHistoryMessageQueryJobTask():
+class ChatHistoryMessageQueryJobTask:
     @staticmethod
     def start():
         # 创建后台线程

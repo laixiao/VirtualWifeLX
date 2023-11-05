@@ -2,7 +2,8 @@ import { IconButton } from "./iconButton";
 import { Message } from "@/features/messages/messages";
 import { KoeiroParam } from "@/features/constants/koeiroParam";
 import { ChatLog } from "./chatLog";
-import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { ChatList } from "./chatList";
+import React, { MutableRefObject, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Settings } from "./settings";
 import { ViewerContext } from "@/features/vrmViewer/viewerContext";
 import { AssistantText } from "./assistantText";
@@ -13,6 +14,8 @@ type Props = {
   openAiKey: string;
   systemPrompt: string;
   chatLog: Message[];
+  chatList: Message[];
+  chatListRef: any,
   koeiroParam: KoeiroParam;
   assistantMessage: string;
   onChangeSystemPrompt: (systemPrompt: string) => void;
@@ -30,6 +33,8 @@ export const Menu = ({
   openAiKey,
   systemPrompt,
   chatLog,
+  chatList,
+  chatListRef,
   koeiroParam,
   assistantMessage,
   onChangeSystemPrompt,
@@ -42,6 +47,7 @@ export const Menu = ({
 }: Props) => {
   const [showSettings, setShowSettings] = useState(false);
   const [showChatLog, setShowChatLog] = useState(false);
+  const [showChatList, setShowChatList] = useState(false);
   const { viewer } = useContext(ViewerContext);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -103,7 +109,8 @@ export const Menu = ({
 
   return (
     <>
-      <div className="absolute z-10 m-24">
+      <div className="absolute z-10">
+        {/* m-24 */}
         <div className="grid grid-flow-col gap-[8px]">
           <IconButton
             iconName="24/Menu"
@@ -111,25 +118,47 @@ export const Menu = ({
             isProcessing={false}
             onClick={() => setShowSettings(true)}
           ></IconButton>
+
           {showChatLog ? (
             <IconButton
-              iconName="24/CommentOutline"
+              iconName="24/CommentFill"
               label="会话记录"
               isProcessing={false}
               onClick={() => setShowChatLog(false)}
             />
           ) : (
             <IconButton
-              iconName="24/CommentFill"
+              iconName="24/CommentOutline"
               label="会话记录"
               isProcessing={false}
               disabled={chatLog.length <= 0}
               onClick={() => setShowChatLog(true)}
             />
           )}
+
+          {showChatList ? (
+            <IconButton
+              iconName="24/CommentFill"
+              label="聊天列表"
+              isProcessing={false}
+              onClick={() => setShowChatList(false)}
+            />
+          ) : (
+            <IconButton
+              iconName="24/CommentOutline"
+              label="聊天列表"
+              isProcessing={false}
+              disabled={chatList.length <= 0}
+              onClick={() => setShowChatList(true)}
+            />
+          )}
         </div>
       </div>
-      {showChatLog && <ChatLog messages={chatLog}  globalConfig={globalConfig} />}
+
+      {showChatLog && <ChatLog messages={chatLog} globalConfig={globalConfig} />}
+
+      {showChatList && <ChatList messages={chatList} globalConfig={globalConfig} ref={chatListRef} />}
+
       {showSettings && (
         <Settings
           globalConfig={globalConfig}
@@ -149,7 +178,7 @@ export const Menu = ({
           onClickResetSystemPrompt={handleClickResetSystemPrompt}
         />
       )}
-       {/* {!showChatLog && assistantMessage && (
+      {/* {!showChatLog && assistantMessage && (
         <AssistantText message={assistantMessage} role_name={globalConfig.characterConfig.character+""} />
       )} */}
       <input

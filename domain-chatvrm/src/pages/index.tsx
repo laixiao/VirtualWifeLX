@@ -43,6 +43,7 @@ export default function Home() {
     const [koeiroParam, setKoeiroParam] = useState<KoeiroParam>(DEFAULT_PARAM);
     const [chatProcessing, setChatProcessing] = useState(false);
     const [chatLog, setChatLog] = useState<Message[]>([]);
+    const [chatList, setChatList] = useState<Message[]>([]);
     const [assistantMessage, setAssistantMessage] = useState("");
     const [imageUrl, setImageUrl] = useState('');
     const [globalConfig, setGlobalConfig] = useState<GlobalConfig>(initialFormData);
@@ -51,6 +52,8 @@ export default function Home() {
     const [backgroundImageUrl, setBackgroundImageUrl] = useState<string>(buildUrl("/bg-c.png"));
     const typingDelay = 100; // 每个字的延迟时间，可以根据需要进行调整
     const MAX_SUBTITLES = 30;
+    const chatListRef = useRef();
+
     const handleSubtitle = (newSubtitle: string) => {
 
         setDisplayedSubtitle((prevSubtitle: string) => {
@@ -62,10 +65,10 @@ export default function Home() {
             return updatedSubtitle;
         });
     };
-    
+
 
     useEffect(() => {
-        if(socketInstance != null){
+        if (socketInstance != null) {
             socketInstance.close()
         }
         if (!bind_message_event) {
@@ -87,6 +90,7 @@ export default function Home() {
             setSystemPrompt(params.systemPrompt);
             setKoeiroParam(params.koeiroParam);
             setChatLog(params.chatLog);
+            setChatList(params.chatList);
         }
     }, []);
 
@@ -95,10 +99,10 @@ export default function Home() {
         process.nextTick(() =>
             window.localStorage.setItem(
                 "chatVRMParams",
-                JSON.stringify({ systemPrompt, koeiroParam, chatLog })
+                JSON.stringify({ systemPrompt, koeiroParam, chatLog, chatList })
             )
         );
-    }, [systemPrompt, koeiroParam, chatLog]);
+    }, [systemPrompt, koeiroParam, chatLog, chatList]);
 
     const handleChangeChatLog = useCallback(
         (targetIndex: number, text: string) => {
@@ -111,7 +115,7 @@ export default function Home() {
     );
 
     /**
-     * 文ごとに音声を直列でリクエストしながら再生する
+     * 每句话串行点播声音并播放
      */
     const handleSpeakAi = useCallback(
         async (
@@ -130,9 +134,10 @@ export default function Home() {
         type: string,
         user_name: string,
         content: string,
-        emote: string) => {
+        emote: string,
+        expand: string) => {
 
-        console.log("RobotMessage:" + content + " emote:" + emote)
+        console.log("3.AI回复消息 RobotMessage:" + content + " emote:" + emote, " expand:" + expand, " user_name:" + user_name)
         // 如果content为空，不进行处理
         // 如果与上一句content完全相同，不进行处理
         if (content == null || content == '' || content == ' ') {
@@ -140,26 +145,40 @@ export default function Home() {
         }
         let aiTextLog = "";
         const sentences = new Array<string>();
-        const aiText = content;
+        const aiText = user_name + "  " + expand + " ? \n " + content;
+
         const aiTalks = textsToScreenplay([aiText], koeiroParam, emote);
         aiTextLog += aiText;
-        // 文ごとに音声を生成 & 再生、返答を表示
+
+        // 回复队列
+        const params = JSON.parse(window.localStorage.getItem("chatVRMParams") as string);
+        if (!params.chatList) {
+            params["chatList"] = [];
+        }
+        let sTime = new Date().getTime();
+        const chatListMsgs: Message[] = [...params.chatList, { type, user_name, content, emote, expand, time: sTime }];
+        setChatList(chatListMsgs);
+
+        // 生成并播放每个句子的声音，显示回答
         const currentAssistantMessage = sentences.join(" ");
         setSubtitle(aiTextLog);
+
+
         handleSpeakAi(globalConfig, aiTalks[0], () => {
             setAssistantMessage(currentAssistantMessage);
             // handleSubtitle(aiText + " "); // 添加空格以区分不同的字幕
             startTypewriterEffect(aiTextLog);
 
-            // アシスタントの返答をログに追加
-            const params = JSON.parse(
-                window.localStorage.getItem("chatVRMParams") as string
-            );
-            const messageLogAssistant: Message[] = [
-                ...params.chatLog,
-                { role: "assistant", content: aiTextLog, "user_name": user_name },
-            ];
+            // 在日志中添加助手的回复
+            const params = JSON.parse(window.localStorage.getItem("chatVRMParams") as string);
+            const messageLogAssistant: Message[] = [...params.chatLog, { role: "assistant", content: aiTextLog, "user_name": user_name },];
             setChatLog(messageLogAssistant);
+
+            let indexPos = chatListMsgs.findIndex(item => item.time == sTime);
+            if (indexPos != -1) {
+                (chatListRef.current as any)?.scrollToMessage(indexPos);
+            }
+
         });
     }, [])
 
@@ -171,16 +190,15 @@ export default function Home() {
         emote: string,
         action: string) => {
 
-        console.log("DanmakuMessage:" + content + " emote:" + emote)
+        console.log("2.弹幕消息 DanmakuMessage:" + content + " emote:" + emote, " user_name:" + user_name)
         // 如果content为空，不进行处理
         // 如果与上一句content完全相同，不进行处理
         if (content == null || content == '' || content == ' ') {
             return
         }
 
-
-        // 动作：思考 - 弹幕发送
         if (action != null && action != '') {
+            console.log("动作：思考2")
             handleBehaviorAction(
                 "behavior_action",
                 action,
@@ -188,36 +206,39 @@ export default function Home() {
             );
         }
 
-        let aiTextLog = "";
-        const sentences = new Array<string>();
-        const aiText = content;
-        const aiTalks = textsToScreenplay([aiText], koeiroParam, emote);
-        aiTextLog += aiText;
-        // 生成并播放每个句子的声音，显示回答
-        setSubtitle(aiTextLog);
-        handleSpeakAi(globalConfig, aiTalks[0], () => {
-            // setAssistantMessage(currentAssistantMessage);
-            startTypewriterEffect(aiTextLog);
-            // 在日志中添加助手的回复
-            const params = JSON.parse(
-                window.localStorage.getItem("chatVRMParams") as string
-            );
-            const messageLog: Message[] = [
-                ...params.chatLog,
-                { role: "user", content: content, "user_name": user_name },
-            ];
-            setChatLog(messageLog);
+        // let aiTextLog = "";
+        // const sentences = new Array<string>();
+        // const aiText = content;
+        // const aiTalks = textsToScreenplay([aiText], koeiroParam, emote);
+        // aiTextLog += aiText;
+        // // 生成并播放每个句子的声音，显示回答
+        // setSubtitle(aiTextLog);
 
-        }, () => {
-            // 动作：说完话 - 弹幕发送
-            if (action != null && action != '') {
-                handleBehaviorAction(
-                    "behavior_action",
-                    "idle_01",
-                    "neutral",
-                );
-            }
-        });
+        // handleSpeakAi(globalConfig, aiTalks[0], () => {
+        //     // setAssistantMessage(currentAssistantMessage);
+        //     startTypewriterEffect(aiTextLog);
+        //     // 在日志中添加助手的回复
+        //     const params = JSON.parse(
+        //         window.localStorage.getItem("chatVRMParams") as string
+        //     );
+        //     const messageLog: Message[] = [
+        //         ...params.chatLog,
+        //         { role: "user", content: content, "user_name": user_name },
+        //     ];
+        //     setChatLog(messageLog);
+
+        // }, () => {
+        //     console.log("动作：说完话2")
+        //     if (action != null && action != '') {
+        //         handleBehaviorAction(
+        //             "behavior_action",
+        //             "idle_01",
+        //             "neutral",
+        //         );
+        //     }
+        // });
+
+
     }
 
     const handleBehaviorAction = (
@@ -243,49 +264,42 @@ export default function Home() {
         }, 100); // 每个字符的间隔时间
     };
 
-    /**
-     * 发送消息
-     */
-    const handleSendChat = useCallback(
-        async (globalConfig: GlobalConfig, type: string, user_name: string, content: string) => {
+    const handleSendChat = useCallback(async (globalConfig: GlobalConfig, type: string, user_name: string, content: string) => {
+        console.log("1.键盘输入消息 UserMessage:" + content)
 
-            console.log("UserMessage:" + content)
+        setChatProcessing(true);
 
-            setChatProcessing(true);
+        console.log("动作：思考1")
+        handleBehaviorAction(
+            "behavior_action",
+            "thinking",
+            "happy",
+        );
 
-            // 动作：思考 - 主动发送
-            handleBehaviorAction(
-                "behavior_action",
-                "thinking",
-                "happy",
-            );
+        const yourName = user_name == null || user_name == '' ? globalConfig?.characterConfig?.yourName : user_name
+        // 添加用户的发言并显示
+        const messageLog: Message[] = [
+            ...chatLog,
+            { role: "user", content: content, "user_name": yourName },
+        ];
+        setChatLog(messageLog);
 
-            const yourName = user_name == null || user_name == '' ? globalConfig?.characterConfig?.yourName : user_name
-            // 添加用户的发言并显示
-            const messageLog: Message[] = [
-                ...chatLog,
-                { role: "user", content: content, "user_name": yourName },
-            ];
-            setChatLog(messageLog);
+        await chat(content, yourName).catch(
+            (e) => {
+                console.error(e);
+                return null;
+            }
+        );
 
-            await chat(content, yourName).catch(
-                (e) => {
-                    console.error(e);
-                    return null;
-                }
-            );
+        console.log("动作：说完话1")
+        handleBehaviorAction(
+            "behavior_action",
+            "idle_01",
+            "neutral",
+        );
 
-            // 动作：说完话 - 主动发送
-            handleBehaviorAction(
-                "behavior_action",
-                "idle_01",
-                "neutral",
-            );
-
-            setChatProcessing(false);
-        },
-        [systemPrompt, chatLog, setChatLog, handleSpeakAi, setImageUrl, openAiKey, koeiroParam]
-    );
+        setChatProcessing(false);
+    }, [systemPrompt, chatLog, setChatLog, handleSpeakAi, setImageUrl, openAiKey, koeiroParam]);
 
     let lastSwitchTime = 0;
 
@@ -306,6 +320,7 @@ export default function Home() {
                 chatMessage.message.user_name,
                 chatMessage.message.content,
                 chatMessage.message.emote,
+                chatMessage.message.expand,
             );
         } else if (type === "behavior_action") {
             handleBehaviorAction(
@@ -357,20 +372,24 @@ export default function Home() {
                         fontFamily: "fzfs",
                         fontSize: "24px",
                         color: "#555",
+                        display: "none"
                     }}>
                         {displayedSubtitle}
                     </div>
                 </div>
-                <MessageInputContainer
+                {/* 消息输入框 */}
+                {/* <MessageInputContainer
                     isChatProcessing={chatProcessing}
                     onChatProcessStart={handleSendChat}
                     globalConfig={globalConfig}
-                />
+                /> */}
                 <Menu
                     globalConfig={globalConfig}
                     openAiKey={openAiKey}
                     systemPrompt={systemPrompt}
                     chatLog={chatLog}
+                    chatList={chatList}
+                    chatListRef={chatListRef}
                     koeiroParam={koeiroParam}
                     assistantMessage={assistantMessage}
                     onChangeAiKey={setOpenAiKey}

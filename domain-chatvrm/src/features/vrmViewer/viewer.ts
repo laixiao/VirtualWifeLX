@@ -86,12 +86,13 @@ export class Viewer {
         { name: "idle_happy_03", path: "daily", description: "Happy idle 3" },
         { name: "standing_greeting", path: "daily", description: "Greeting" },
         { name: "thinking", path: "daily", description: "Thinking pose" },
-        { name: "excited", path: "emote", description: "Excited" },
         { name: "Sitting Idle", path: "daily", description: "Sitting idle" },
         { name: "Dance Snake Hip Hop", path: "daily", description: "Snake dance" },
         { name: "Dance Thriller Part 2", path: "daily", description: "Thriller dance" },
         { name: "Dancing Hip Hop", path: "daily", description: "Hip hop dance" },
-        { name: "Standing Arguing", path: "daily", description: "Arguing" }
+        { name: "Standing Arguing", path: "daily", description: "Arguing" },
+        
+        { name: "excited", path: "emote", description: "Excited" },
       ];
       let loadAnimation = async (animation: { name: string; path: string; description?: string }) => {
         if (this.model && this.model.vrm) {
@@ -105,7 +106,7 @@ export class Viewer {
 
       // const vrma = await loadVRMAnimation(buildUrl("/idle_loop.vrma"));
       // if (vrma) this.model.loadAnimation(vrma);
-      this.model.loadFBX("Sitting Idle")
+      this.model.loadFBX("idle_01")
 
       // HACK: アニメーションの原点がずれているので再生後にカメラ位置を調整する
       requestAnimationFrame(() => {
