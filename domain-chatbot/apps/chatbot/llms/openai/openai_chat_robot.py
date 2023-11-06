@@ -13,19 +13,27 @@ logger = logging.getLogger(__name__)
 class OpenAIGeneration:
     llm: ChatOpenAI
 
-    def __init__(self) -> None:
+    def __init__(self, model_name: str = "gpt-3.5-turbo") -> None:
         from dotenv import load_dotenv
 
         load_dotenv()
         OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
         OPENAI_BASE_URL = os.environ["OPENAI_BASE_URL"]
         if OPENAI_BASE_URL != None and OPENAI_BASE_URL != "":
-            self.llm = ChatOpenAI(
-                temperature=0.7,
-                model_name="gpt-3.5-turbo",
-                openai_api_key=OPENAI_API_KEY,
-                openai_api_base=OPENAI_BASE_URL,
-            )
+            if model_name == "gpt-3.5-turbo":
+                self.llm = ChatOpenAI(
+                    temperature=0.7,
+                    model_name="gpt-3.5-turbo",
+                    openai_api_key=OPENAI_API_KEY,
+                    openai_api_base=OPENAI_BASE_URL,
+                )
+            else:
+                self.llm = ChatOpenAI(
+                    temperature=0.7,
+                    model_name="gpt-4",
+                    openai_api_key=os.environ["OPENAI_API_KEY_4"],
+                    openai_api_base=os.environ["OPENAI_BASE_URL_4"],
+                )
         else:
             self.llm = ChatOpenAI(
                 temperature=0.7,
@@ -43,10 +51,10 @@ class OpenAIGeneration:
         long_history: str,
     ) -> str:
         prompt = prompt + query
-        logger.debug(f"openai提示词（非流式）：{prompt}")
+        logger.debug(f"1.GPT提问：{query}")
         llm_result = self.llm.generate(messages=[[HumanMessage(content=prompt)]])
         llm_result_text = llm_result.generations[0][0].text
-        logger.info(f"==>openai（非流式）响应: {llm_result_text}")
+        logger.debug(f"1.GPT回复：{llm_result_text}")
         return llm_result_text
 
     async def chatStream(
@@ -59,7 +67,7 @@ class OpenAIGeneration:
         realtime_callback=None,
         conversation_end_callback=None,
     ):
-        logger.debug(f"GPT提问：{query}")
+        logger.debug(f"2.GPT提问：{query}")
         messages = []
         for item in history:
             message = {"role": "user", "content": item["human"]}
@@ -69,13 +77,13 @@ class OpenAIGeneration:
         messages.append({"role": "system", "content": prompt})
         messages.append({"role": "user", "content": query})
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4",
             messages=messages,
             temperature=0,
         )
 
         reply = response["choices"][0]["message"]["content"]
-        logger.debug(f"GPT回复：{reply}")
+        logger.debug(f"2.GPT回复：{reply}")
 
         if realtime_callback:
             realtime_callback(role_name, you_name, reply, query)  # 调用实时消息推送的回调函数

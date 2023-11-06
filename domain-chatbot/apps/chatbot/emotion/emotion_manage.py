@@ -6,7 +6,7 @@ from ..utils.chat_message_utils import format_user_chat_text
 logger = logging.getLogger(__name__)
 
 
-class EmotionRecognition():
+class EmotionRecognition:
 
     """情感识别"""
 
@@ -56,21 +56,31 @@ class EmotionRecognition():
     <</SYS>>
     """
 
-    def __init__(self, llm_model_driver: LlmModelDriver, llm_model_driver_type: str) -> None:
+    def __init__(
+        self, llm_model_driver: LlmModelDriver, llm_model_driver_type: str
+    ) -> None:
         self.llm_model_driver = llm_model_driver
         self.llm_model_driver_type = llm_model_driver_type
 
     def recognition(self, you_name: str, query: str) -> str:
-        prompt = self.input_prompt.format(
-            input=f"{you_name}说{query}")+self.output_prompt
+        prompt = (
+            self.input_prompt.format(input=f"{you_name}说{query}") + self.output_prompt
+        )
         result = self.llm_model_driver.chat(
-            prompt=prompt, type=self.llm_model_driver_type, role_name="", you_name="", query="", short_history=[], long_history="")
+            prompt=prompt,
+            type=self.llm_model_driver_type,
+            role_name="",
+            you_name="",
+            query="",
+            short_history=[],
+            long_history="",
+        )
         logger.debug(f"=> recognition:{result}")
-        start_idx = result.find('{')
-        end_idx = result.rfind('}')
+        start_idx = result.find("{")
+        end_idx = result.rfind("}")
         intent = ""
         if start_idx != -1 and end_idx != -1:
-            json_str = result[start_idx:end_idx+1]
+            json_str = result[start_idx : end_idx + 1]
             json_data = json.loads(json_str)
             intent = json_data["intent"]
         else:
@@ -78,7 +88,7 @@ class EmotionRecognition():
         return intent
 
 
-class EmotionRespond():
+class EmotionRespond:
 
     """情感响应"""
 
@@ -99,21 +109,34 @@ class EmotionRespond():
     <</SYS>>
     """
 
-    def __init__(self, llm_model_driver: LlmModelDriver, llm_model_driver_type: str) -> None:
+    def __init__(
+        self, llm_model_driver: LlmModelDriver, llm_model_driver_type: str
+    ) -> None:
         self.llm_model_driver = llm_model_driver
         self.llm_model_driver_type = llm_model_driver_type
 
     def respond(self, intent: str, you_name: str, query: str, long_history: str) -> str:
-        prompt = self.input_prompt.format(
-            you_name=you_name, query=query, intent=intent, histroy=long_history)+self.output_prompt
+        prompt = (
+            self.input_prompt.format(
+                you_name=you_name, query=query, intent=intent, histroy=long_history
+            )
+            + self.output_prompt
+        )
         result = self.llm_model_driver.chat(
-            prompt=prompt, type=self.llm_model_driver_type, role_name="", you_name="", query="", short_history=[], long_history="")
+            prompt=prompt,
+            type=self.llm_model_driver_type,
+            role_name="",
+            you_name="",
+            query="",
+            short_history=[],
+            long_history="",
+        )
         logger.debug(f"=> respond:{result}")
-        start_idx = result.find('{')
-        end_idx = result.rfind('}')
+        start_idx = result.find("{")
+        end_idx = result.rfind("}")
         intent = ""
         if start_idx != -1 and end_idx != -1:
-            json_str = result[start_idx:end_idx+1]
+            json_str = result[start_idx : end_idx + 1]
             json_data = json.loads(json_str)
             intent = json_data["respond"]
         else:
@@ -121,7 +144,7 @@ class EmotionRespond():
         return intent
 
 
-class GenerationEmotionRespondChatPropmt():
+class GenerationEmotionRespondChatPropmt:
 
     """根据响应响对话propmt"""
 
@@ -133,10 +156,12 @@ class GenerationEmotionRespondChatPropmt():
         """
 
     def generation_propmt(self, role_name: str, character_prompt: str, respond: str):
-        return self.prompt.format(role_name=role_name, character_prompt=character_prompt, respond=respond)
+        return self.prompt.format(
+            role_name=role_name, character_prompt=character_prompt, respond=respond
+        )
 
 
-class GenerationEmote():
+class GenerationEmote:
 
     """生成模型表情"""
 
@@ -156,21 +181,30 @@ class GenerationEmote():
     <</SYS>>
     """
 
-    def __init__(self, llm_model_driver: LlmModelDriver, llm_model_driver_type: str) -> None:
+    def __init__(
+        self, llm_model_driver: LlmModelDriver, llm_model_driver_type: str
+    ) -> None:
         self.llm_model_driver = llm_model_driver
         self.llm_model_driver_type = llm_model_driver_type
 
     def generation_emote(self, query: str) -> str:
         prompt = self.input_prompt + self.output_prompt
         result = self.llm_model_driver.chat(
-            prompt=prompt, type=self.llm_model_driver_type, role_name="", you_name="", query=f"text:{query}", short_history=[], long_history="")
+            prompt=prompt,
+            type=self.llm_model_driver_type,
+            role_name="",
+            you_name="",
+            query=f"text:{query}",
+            short_history=[],
+            long_history="",
+        )
         logger.debug(f"=> emote:{result}")
         emote = "neutral"
         try:
-            start_idx = result.find('{')
-            end_idx = result.rfind('}')
+            start_idx = result.find("{")
+            end_idx = result.rfind("}")
             if start_idx != -1 and end_idx != -1:
-                json_str = result[start_idx:end_idx+1]
+                json_str = result[start_idx : end_idx + 1]
                 json_data = json.loads(json_str)
                 emote = json_data["emote"]
             else:

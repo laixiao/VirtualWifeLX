@@ -362,6 +362,7 @@ export default function Home() {
                 height: '100vh',
                 position: 'relative',
                 zIndex: 1,
+                backgroundPosition: "center"
             }}>
             <div>
                 <Meta />

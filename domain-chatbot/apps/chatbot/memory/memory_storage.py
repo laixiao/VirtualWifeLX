@@ -93,11 +93,13 @@ class MemoryStorageDriver():
         return chat_history
 
     def format_you_history(self, you_name: str, query_text: str):
-        you_history = f"{you_name}说{query_text}"
+        # you_history = f"{you_name}说{query_text}"
+        you_history = f"{query_text}"
         return you_history
 
     def format_role_history(self, role_name: str, answer_text: str):
-        role_history = f"{role_name}说{answer_text}"
+        # role_history = f"{role_name}说{answer_text}"
+        role_history = f"{answer_text}"
         return role_history
 
     def get_current_entity_id(self) -> int:
