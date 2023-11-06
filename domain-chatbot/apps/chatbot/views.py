@@ -281,8 +281,8 @@ def show_system_vrm_models(request):
         {
             "id": "sys_01",
             "type": "system",
-            "original_name": "わたあめ_03.vrm",
-            "vrm": "わたあめ_03.vrm",
+            "original_name": "girl01.vrm",
+            "vrm": "girl01.vrm",
         },
         {
             "id": "sys_02",
@@ -293,8 +293,8 @@ def show_system_vrm_models(request):
         {
             "id": "sys_03",
             "type": "system",
-            "original_name": "hailey.vrm",
-            "vrm": "hailey.vrm",
+            "original_name": "黑色大胸妹.vrm",
+            "vrm": "黑色大胸妹.vrm",
         },
         {
             "id": "sys_04",
@@ -305,14 +305,14 @@ def show_system_vrm_models(request):
         {
             "id": "sys_05",
             "type": "system",
-            "original_name": "aili.vrm",
-            "vrm": "aili.vrm",
+            "original_name": "眼睛大胸妹.vrm",
+            "vrm": "眼睛大胸妹.vrm",
         },
         {
             "id": "sys_06",
             "type": "system",
-            "original_name": "K-00024.vrm",
-            "vrm": "K-00024.vrm",
+            "original_name": "活力少女.vrm",
+            "vrm": "活力少女.vrm",
         },
     ]
     return Response({"response": vrm_models, "code": "200"})

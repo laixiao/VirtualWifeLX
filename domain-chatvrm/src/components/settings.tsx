@@ -206,6 +206,58 @@ export const Settings = ({
         </div>
 
         <div className="section">
+          {/* <div className="title">自定义VRM模型</div>
+          <div className="my-8">
+            <TextButton onClick={onClickOpenVrmFile}>上传VRM</TextButton>
+          </div> */}
+          <div className="title">自定义VRM模型</div>
+          <div className="field">
+            <label>上传VRM模型</label>
+            <div className="flex items-center justify-center space-x-4">
+              <select
+                value={selectedVrmModelId}
+                onChange={e => {
+                  const selectedVrmModelId = e.target.options[e.target.selectedIndex].getAttribute('data-key');
+                  const vrmModelId = Number(selectedVrmModelId);
+                  setSelectedVrmModelId(vrmModelId);
+                }}>
+                <option key="-1" value="-1" data-key="-1" data-url="">请选择</option>
+                {userVrmModels.map(vrmModel => (
+                  <option key={vrmModel.id} value={vrmModel.id} data-key={vrmModel.id} data-url={vrmModel.vrm}>
+                    {vrmModel.original_name}
+                  </option>
+                ))}
+              </select >
+              <input
+                type="file"
+                ref={VrmModelFileInputRef}
+                style={{ display: 'none' }}
+                onChange={handleVrmModelFileChange}
+              />
+              <IconButton
+                iconName="16/Add"
+                label='上传模型'
+                isProcessing={false}
+                onClick={handleVrmModelButtonClick}
+              ></IconButton>
+              <IconButton
+                iconName="16/Remove"
+                label='删除模型'
+                isProcessing={false}
+                onClick={e => {
+                  if (selectedVrmModelId !== -1) {
+                    handleDeleteVrmModel(selectedVrmModelId)
+                  }
+                }}
+              ></IconButton>
+              <div className="flex justify-end mt-4">
+                {deleteVrmModelLog}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="section">
           <div className="title">语音设置</div>
           <div className="checkbot-field">
             <label>语音引擎:</label>
@@ -245,44 +297,6 @@ export const Settings = ({
                 </option>
               ))}
             </select >
-          </div>
-        </div>
-
-        <div className="section">
-          <div className="title">对话设置</div>
-          <div className="checkbot-field">
-            <label>对话模式:</label>
-            <input className='checkbot-input' type="radio" name="chatType" value="default"
-              onChange={() => {
-                formData.conversationConfig.conversationType = 'default';
-                setFormData(formData);
-                setConversationType(formData.conversationConfig.conversationType);
-              }}
-              checked={conversationType === 'default'} /> 普通对话模式
-            {/* <input className='checkbot-input' type="radio" name="chatType" value="thought-chain"
-              onChange={() => {
-                formData.conversationConfig.conversationType = 'thought_chain';
-                setFormData(formData);
-                setConversationType(formData.conversationConfig.conversationType);
-              }}
-              checked={conversationType === 'thought_chain'}
-            /> 推理+生成对话模式 */}
-          </div>
-
-          <div className="field">
-            <label>选择大语言模型:</label>
-            <select
-              defaultValue={formData.conversationConfig.languageModel}
-              onChange={e => {
-                formData.conversationConfig.languageModel = e.target.value;
-                setFormData(formData);
-              }}>
-              {
-                llm_enums.map(llm => (
-                  <option key={llm} value={llm}>{llm}</option>
-                ))
-              }
-            </select>
           </div>
         </div>
 
@@ -404,6 +418,45 @@ export const Settings = ({
     // 大语言模型设置
     return (
       <div className="globals-settings">
+
+<div className="section">
+          <div className="title">对话设置</div>
+          <div className="checkbot-field">
+            <label>对话模式:</label>
+            <input className='checkbot-input' type="radio" name="chatType" value="default"
+              onChange={() => {
+                formData.conversationConfig.conversationType = 'default';
+                setFormData(formData);
+                setConversationType(formData.conversationConfig.conversationType);
+              }}
+              checked={conversationType === 'default'} /> 普通对话模式
+            {/* <input className='checkbot-input' type="radio" name="chatType" value="thought-chain"
+              onChange={() => {
+                formData.conversationConfig.conversationType = 'thought_chain';
+                setFormData(formData);
+                setConversationType(formData.conversationConfig.conversationType);
+              }}
+              checked={conversationType === 'thought_chain'}
+            /> 推理+生成对话模式 */}
+          </div>
+
+          <div className="field">
+            <label>选择大语言模型:</label>
+            <select
+              defaultValue={formData.conversationConfig.languageModel}
+              onChange={e => {
+                formData.conversationConfig.languageModel = e.target.value;
+                setFormData(formData);
+              }}>
+              {
+                llm_enums.map(llm => (
+                  <option key={llm} value={llm}>{llm}</option>
+                ))
+              }
+            </select>
+          </div>
+        </div>
+
         <div className="section">
           <div className="title">OpenAI配置</div>
           <div className="field">
@@ -425,6 +478,7 @@ export const Settings = ({
             />
           </div>
         </div>
+        
         <div className="section">
           <div className="title">text-generation-webui配置</div>
           <div className="field">
@@ -755,57 +809,7 @@ export const Settings = ({
             <EditCustomRole />
           </div>
         </div>
-        <div className="section">
-          {/* <div className="title">自定义VRM模型</div>
-          <div className="my-8">
-            <TextButton onClick={onClickOpenVrmFile}>上传VRM</TextButton>
-          </div> */}
-          <div className="title">自定义VRM模型</div>
-          <div className="field">
-            <label>上传VRM模型</label>
-            <div className="flex items-center justify-center space-x-4">
-              <select
-                value={selectedVrmModelId}
-                onChange={e => {
-                  const selectedVrmModelId = e.target.options[e.target.selectedIndex].getAttribute('data-key');
-                  const vrmModelId = Number(selectedVrmModelId);
-                  setSelectedVrmModelId(vrmModelId);
-                }}>
-                <option key="-1" value="-1" data-key="-1" data-url="">请选择</option>
-                {userVrmModels.map(vrmModel => (
-                  <option key={vrmModel.id} value={vrmModel.id} data-key={vrmModel.id} data-url={vrmModel.vrm}>
-                    {vrmModel.original_name}
-                  </option>
-                ))}
-              </select >
-              <input
-                type="file"
-                ref={VrmModelFileInputRef}
-                style={{ display: 'none' }}
-                onChange={handleVrmModelFileChange}
-              />
-              <IconButton
-                iconName="16/Add"
-                label='上传模型'
-                isProcessing={false}
-                onClick={handleVrmModelButtonClick}
-              ></IconButton>
-              <IconButton
-                iconName="16/Remove"
-                label='删除模型'
-                isProcessing={false}
-                onClick={e => {
-                  if (selectedVrmModelId !== -1) {
-                    handleDeleteVrmModel(selectedVrmModelId)
-                  }
-                }}
-              ></IconButton>
-              <div className="flex justify-end mt-4">
-                {deleteVrmModelLog}
-              </div>
-            </div>
-          </div>
-        </div>
+
       </div>)
   }
 

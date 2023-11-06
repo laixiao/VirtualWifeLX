@@ -62,10 +62,10 @@ class ProcessCore():
         #     logger.error("chat error: %s" % str(e))
         #     realtime_callback(role_name=role_name,
         #                       you_name=you_name, content=error_message, end_bool=True)
-            logger.error("大语言请求失败: %s" % str(e))
+            logger.error(f"大语言请求失败: {str(e)}")
             if retry_count < max_retries:
                 # 等待一定时间，比如1秒，避免紧密循环
-                logger.info("重试计数: ${retry_count}")
+                logger.info(f"重试次数: {retry_count}")
                 time.sleep(1)
                 self.chat(you_name, query, retry_count+1)  # 重试，并增加重试计数
             else:
