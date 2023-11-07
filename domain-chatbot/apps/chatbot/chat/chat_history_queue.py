@@ -47,7 +47,7 @@ def send_message():
         try:
             message = chat_history_queue.get()
             if message != None and message != "":
-                # logger.info(f"==>存储消息：{message.to_dict()}")
+                logger.debug(f"==>存储消息：{message.to_dict()}")
                 singleton_sys_config.memory_storage_driver.save(
                     message.you_name,
                     message.you_message,

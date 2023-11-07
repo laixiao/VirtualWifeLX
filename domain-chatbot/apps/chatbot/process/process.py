@@ -49,13 +49,15 @@ class ProcessCore:
                 )
             )
             history = []
+            
+            logger.debug(f"查询历史消息（记忆）： you_name: {you_name}，role_name: {role_name}")
+            logger.debug(short_history)
 
             # current_time = get_current_time_str()
             # prompt = prompt.format(
             #     you_name=you_name, long_history=long_history, current_time=current_time
             # )
 
-            # logger.info(prompt)
 
             # 调用大语言模型流式生成对话
             singleton_sys_config.llm_model_driver.chatStream(
@@ -64,7 +66,7 @@ class ProcessCore:
                 role_name=role_name,
                 you_name=you_name,
                 query=query,
-                history=history,
+                history=short_history,
                 realtime_callback=realtime_callback2,
                 conversation_end_callback=conversation_end_callback,
             )

@@ -83,11 +83,16 @@ class OpenAIGeneration:
             temperature=0,
         )
 
-        reply = response["choices"][0]["message"]["content"]
-        logger.debug(f"2.GPT回复：{reply}")
+        answer = response["choices"][0]["message"]["content"]
+        logger.debug(f"2.GPT回复：{answer}")
 
         if realtime_callback:
-            realtime_callback(role_name, you_name, reply, query)  # 调用实时消息推送的回调函数
+            realtime_callback(role_name, you_name, answer, query)  # 调用实时消息推送的回调函数
+
+        if conversation_end_callback:
+            conversation_end_callback(
+                role_name, answer, you_name, query
+            )  # 调用对话结束消息的回调函数
 
     # async def chatStream(
     #     self,

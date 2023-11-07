@@ -1,4 +1,5 @@
 from io import BytesIO
+import subprocess
 
 from django.shortcuts import render
 import os
@@ -13,7 +14,20 @@ from django.http import HttpResponse, StreamingHttpResponse
 
 logger = logging.getLogger(__name__)
 
+# sudo apt-get install ffmpeg
+def get_audio_duration(file_path):
+    try:
+        # 使用FFmpeg获取音频时长
+        result = subprocess.run(['ffprobe', '-i', file_path, '-show_entries', 'format=duration', '-v', 'quiet', '-of', 'csv=p=0'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        
+        # 解析结果
+        duration = float(result.stdout)
 
+        return duration
+    except Exception as e:
+        print(f"获取音频时长错误 Error getting audio duration: {e}")
+        return None
+    
 @api_view(["POST"])
 def generate(request):
     """
@@ -28,6 +42,12 @@ def generate(request):
         file_name = single_tts_driver.synthesis(type=type, text=text, voice_id=voice_id)
         file_path = os.path.join("tmp", file_name)
 
+        duration = get_audio_duration(file_path)
+        if duration is not None:
+            print(f"音频时长：{duration} 秒")
+        else:
+            print("无法获取音频时长")
+            
         audio_file = BytesIO()
         with open(file_path, "rb") as file:
             audio_file.write(file.read())
