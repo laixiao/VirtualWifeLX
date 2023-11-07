@@ -419,7 +419,7 @@ export const Settings = ({
     return (
       <div className="globals-settings">
 
-<div className="section">
+        <div className="section">
           <div className="title">对话设置</div>
           <div className="checkbot-field">
             <label>对话模式:</label>
@@ -478,7 +478,7 @@ export const Settings = ({
             />
           </div>
         </div>
-        
+
         <div className="section">
           <div className="title">text-generation-webui配置</div>
           <div className="field">
@@ -865,9 +865,9 @@ export const Settings = ({
             }}
           />
           <div className="input-group">
-            <label>角色基本信息定义</label>
+            <label>角色定义</label>
             <textarea
-              className="resize-y w-full p-2"
+              className="resize-y w-full p-2 role-height"
               name="persona"
               defaultValue={customRole.persona}
               onChange={e => {
@@ -876,7 +876,8 @@ export const Settings = ({
               }}
             />
           </div>
-          <div className="input-group">
+
+          {/* <div className="input-group">
             <label>角色的性格简短描述</label>
             <textarea
               className="resize-y w-full p-2"
@@ -911,7 +912,8 @@ export const Settings = ({
                 setCustomRole(customRole)
               }}
             />
-          </div>
+          </div> */}
+
           <label>角色propmt模版</label>
           <select
             name="custom_role_template_type"

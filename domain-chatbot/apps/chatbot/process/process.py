@@ -48,11 +48,12 @@ class ProcessCore:
                     query_text=query, you_name=you_name, role_name=role_name
                 )
             )
+            history = []
 
-            current_time = get_current_time_str()
-            prompt = prompt.format(
-                you_name=you_name, long_history=long_history, current_time=current_time
-            )
+            # current_time = get_current_time_str()
+            # prompt = prompt.format(
+            #     you_name=you_name, long_history=long_history, current_time=current_time
+            # )
 
             # logger.info(prompt)
 
@@ -63,7 +64,7 @@ class ProcessCore:
                 role_name=role_name,
                 you_name=you_name,
                 query=query,
-                history=short_history,
+                history=history,
                 realtime_callback=realtime_callback2,
                 conversation_end_callback=conversation_end_callback,
             )

@@ -63,4 +63,4 @@ class ChineseCharacterTemplate(BaseCharacterTemplate):
             long_history=long_history, input=input, input_prompt=input_prompt, current_time=current_time
         )
 
-        return prompt
+        return persona

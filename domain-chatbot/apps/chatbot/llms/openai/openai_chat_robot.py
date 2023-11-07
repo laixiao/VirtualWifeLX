@@ -67,7 +67,7 @@ class OpenAIGeneration:
         realtime_callback=None,
         conversation_end_callback=None,
     ):
-        logger.debug(f"2.GPT提问：{query}")
+        # logger.debug(f"2.GPT提问：{query}")
         messages = []
         for item in history:
             message = {"role": "user", "content": item["human"]}
@@ -76,6 +76,7 @@ class OpenAIGeneration:
             messages.append(message)
         messages.append({"role": "system", "content": prompt})
         messages.append({"role": "user", "content": query})
+        logger.debug(f"2.GPT提问：{messages}")
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=messages,
