@@ -59,6 +59,7 @@ class OpenAIGeneration:
 
     async def chatStream(
         self,
+        role: str,
         prompt: str,
         role_name: str,
         you_name: str,
@@ -69,12 +70,14 @@ class OpenAIGeneration:
     ):
         # logger.debug(f"2.GPT提问：{query}")
         messages = []
-        for item in history:
+        messages.append({"role": role, "content": prompt})
+        reversed_history = list(reversed(history))
+        for item in reversed_history:
+            logger.debug(f"2.历史消息：{item}")
             message = {"role": "user", "content": item["human"]}
             messages.append(message)
             message = {"role": "assistant", "content": item["ai"]}
             messages.append(message)
-        messages.append({"role": "system", "content": prompt})
         messages.append({"role": "user", "content": query})
         logger.debug(f"2.GPT提问：{messages}")
         response = openai.ChatCompletion.create(

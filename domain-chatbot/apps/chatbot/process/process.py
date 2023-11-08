@@ -58,9 +58,9 @@ class ProcessCore:
             #     you_name=you_name, long_history=long_history, current_time=current_time
             # )
 
-
             # 调用大语言模型流式生成对话
             singleton_sys_config.llm_model_driver.chatStream(
+                role=character.personality,
                 prompt=prompt,
                 type=singleton_sys_config.conversation_llm_model_driver_type,
                 role_name=role_name,

@@ -23,6 +23,7 @@ class LlmModelStrategy(ABC):
     @abstractmethod
     async def chatStream(
         self,
+        role: str,
         prompt: str,
         role_name: str,
         you_name: str,
@@ -166,6 +167,7 @@ class LlmModelDriver:
 
     def chatStream(
         self,
+        role: str,
         prompt: str,
         type: str,
         role_name: str,
@@ -178,6 +180,7 @@ class LlmModelDriver:
         strategy = self.get_strategy(type, "gpt-4")
         asyncio.run(
             strategy.chatStream(
+                role=role,
                 prompt=prompt,
                 role_name=role_name,
                 you_name=you_name,

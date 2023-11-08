@@ -854,7 +854,7 @@ export const Settings = ({
           <div className="field-"></div>
           {enableCreateRole == true ? (
             <label>创建角色</label>) : (<label>编辑角色</label>)}
-          <label>角色名称</label>
+          <label>名称</label>
           <input
             type="text"
             name="role_name"
@@ -864,8 +864,27 @@ export const Settings = ({
               setCustomRole(customRole)
             }}
           />
+
+          <label>视角</label>
+          <select
+            name="personality"
+            defaultValue={customRole.personality}
+            onChange={e => {
+              customRole.personality = e.target.value
+              console.log(customRole.personality)
+              setCustomRole(customRole)
+            }}
+          >
+            <option key="-1" value="-1" data-key="-1">请选择</option>
+            <option key="system" value="system">system</option>
+            <option key="assistant" value="assistant">assistant</option>
+            <option key="user" value="user">user</option>
+            {/* 可以继续添加更多选项 */}
+          </select>
+
+
           <div className="input-group">
-            <label>角色定义</label>
+            <label>提示词</label>
             <textarea
               className="resize-y w-full p-2 role-height"
               name="persona"
@@ -878,7 +897,7 @@ export const Settings = ({
           </div>
 
           {/* <div className="input-group">
-            <label>角色的性格简短描述</label>
+            <label>视角</label>
             <textarea
               className="resize-y w-full p-2"
               name="personality"
@@ -928,6 +947,7 @@ export const Settings = ({
             <option key="zh" value="zh">zh</option>
             {/* 可以继续添加更多选项 */}
           </select>
+
           <div className="flex justify-end mt-4">
             <IconButton
               iconName="24/Save"
