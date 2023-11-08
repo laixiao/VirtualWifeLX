@@ -161,24 +161,105 @@ class GenerationEmotionRespondChatPropmt:
         )
 
 
+# class GenerationEmote:
+
+#     """生成模型表情"""
+
+#     llm_model_driver: LlmModelDriver
+#     input_prompt: str = """
+#     <s>[INST] <<SYS>>
+#     You are now an emotion expression AI, this is my text, please speculate on the emotion the text wants to express,
+#     The rules for expressing emotions are as follows: There are five types of feelings that express normal "neutral", "happy" that expresses happiness, "angry" that expresses anger, "sad" that expresses sadness, and "relaxed" that expresses calm. Your result can only be one of these five
+#     """
+
+#     output_prompt: str = """
+#     Please output the result in all lowercase letters.
+#     Please only output the result, no need to output the reasoning process.
+#     Please use the output of your reasoning emotion.
+#     Please output the result strictly in JSON format. The output example is as follows:
+#     {"emote":"your reasoning emotions"}
+#     <</SYS>>
+#     """
+
+#     def __init__(
+#         self, llm_model_driver: LlmModelDriver, llm_model_driver_type: str
+#     ) -> None:
+#         self.llm_model_driver = llm_model_driver
+#         self.llm_model_driver_type = llm_model_driver_type
+
+#     def generation_emote(self, query: str) -> str:
+#         prompt = self.input_prompt + self.output_prompt
+#         result = self.llm_model_driver.chat(
+#             prompt=prompt,
+#             type=self.llm_model_driver_type,
+#             role_name="",
+#             you_name="",
+#             query=f"text:{query}",
+#             short_history=[],
+#             long_history="",
+#         )
+#         logger.debug(f"=> GPT分析的表情： {result}")
+#         emote = "neutral"
+#         try:
+#             start_idx = result.find("{")
+#             end_idx = result.rfind("}")
+#             if start_idx != -1 and end_idx != -1:
+#                 json_str = result[start_idx : end_idx + 1]
+#                 json_data = json.loads(json_str)
+#                 emote = json_data["emote"]
+#             else:
+#                 logger.warn("未找到匹配的JSON字符串")
+
+#         except Exception as e:
+#             logger.error("GenerationEmote error: %s" % str(e))
+
+#         return [{"emote":emote}]
+
+
 class GenerationEmote:
 
     """生成模型表情"""
 
     llm_model_driver: LlmModelDriver
     input_prompt: str = """
-    <s>[INST] <<SYS>>
-    You are now an emotion expression AI, this is my text, please speculate on the emotion the text wants to express,
-    The rules for expressing emotions are as follows: There are five types of feelings that express normal "neutral", "happy" that expresses happiness, "angry" that expresses anger, "sad" that expresses sadness, and "relaxed" that expresses calm. Your result can only be one of these five
-    """
+        # Role: 情感分析AI
 
-    output_prompt: str = """
-    Please output the result in all lowercase letters.
-    Please only output the result, no need to output the reasoning process.
-    Please use the output of your reasoning emotion.
-    Please output the result strictly in JSON format. The output example is as follows:
-    {"emote":"your reasoning emotions"}
-    <</SYS>>
+        ## Profile
+        - Author: LAIXIAO
+        - Version: 0.1
+        - Language: JSON
+        - Description: 情感分析AI可以分析文本中的情感，推测文字所要表达的感情。
+
+        ### Skill
+        1. 使用情感推理来分析文本中的感情。
+        2. 将文中包含的所有情感，分段推理出来。
+        3. 请使用你的推理情感输出。
+
+        ## Rules
+        1. emote可能的值只有以下五种类型：表达正常的“neutral”，“happy”表达快乐，“angry”表达愤怒，“sad”表达悲伤，“relaxed”表达平静。
+        2. time代表某段情感转成普通话音频文件的大致时长，单位为秒。
+        3. 如果相邻两段emote相同，则合并成一段输出。
+        4. 请严格以JSON数组格式输出结果，
+        5. 无需解释，不需要输出推理过程，只输出JSON数组。
+
+        ## OutputFormat :
+        [{"emote":"你的推理的情绪","time": "文本片段转成普通话音频文件的大致时长"}]
+
+        ## Examples :
+        1. 我真的是被你气死了
+        - [{"emote":"angry","time": 3.3}]
+
+        2. 今早吃到我最喜欢的汉堡，我非常很开心，但是中午掉坑里了，就变得非常沮丧。
+        - [{"emote":"angry","time": 6.5},{"emote":"angry","time": 5.2}]
+
+        ## Workflow
+        1. 分段分析文本中的情感。
+        2. 揣测某段emote文本转成普通话的音频文件时长。
+        3. 输出整个文本中的情感变化。
+
+        ## Initialization
+        你作为角色 <Role>, 拥有 <Skill>, 严格遵守 <Rules> 和 <OutputFormat>, 参考 <Examples> 回复我。
+        
     """
 
     def __init__(
@@ -188,31 +269,25 @@ class GenerationEmote:
         self.llm_model_driver_type = llm_model_driver_type
 
     def generation_emote(self, query: str) -> str:
-        prompt = self.input_prompt + self.output_prompt
-        result = self.llm_model_driver.chat(
-            prompt=prompt,
-            type=self.llm_model_driver_type,
-            role_name="",
-            you_name="",
-            query=f"text:{query}",
-            short_history=[],
-            long_history="",
-        )
-        logger.debug(f"=> GPT分析的表情： {result}")
-        emote = "neutral"
+        emote = [{"emote": "neutral", "time": -1}]
+
         try:
-            # start_idx = result.find("{")
-            # end_idx = result.rfind("}")
-            # if start_idx != -1 and end_idx != -1:
-            #     json_str = result[start_idx : end_idx + 1]
-            #     json_data = json.loads(json_str)
-            #     emote = json_data["emote"]
-            # else:
-            #     logger.warn("未找到匹配的JSON字符串")
-            
-            json_data = json.loads(result)
-            emote = json_data["emote"]
-            return emote
+            prompt = self.input_prompt
+            result = self.llm_model_driver.chat(
+                prompt=prompt,
+                type=self.llm_model_driver_type,
+                role_name="",
+                you_name="",
+                query="需要分析情感的文本如下：`" + query + "`",
+                short_history=[],
+                long_history="",
+            )
+
+            # json_str = result.split("```")[1].strip()
+            # logger.debug(f"=> {self.llm_model_driver_type} 分析的表情： {json_str}")
+            emote = json.loads(result)
+            # emote = json_data["emote"]
+            return json.loads(emote)
         except Exception as e:
             logger.error("GenerationEmote error: %s" % str(e))
 

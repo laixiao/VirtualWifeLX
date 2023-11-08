@@ -134,10 +134,10 @@ export default function Home() {
         type: string,
         user_name: string,
         content: string,
-        emote: string,
+        emote: [{ "emote": string, "time": number }],
         expand: string) => {
 
-        console.log("3.AI回复消息 RobotMessage:" + content + " emote:" + emote, " expand:" + expand, " user_name:" + user_name)
+        console.log("3.AI回复消息 RobotMessage:" + content + " emote:", emote, " expand:" + expand, " user_name:" + user_name)
         // 如果content为空，不进行处理
         // 如果与上一句content完全相同，不进行处理
         if (content == null || content == '' || content == ' ') {
@@ -147,7 +147,7 @@ export default function Home() {
         const sentences = new Array<string>();
         const aiText = user_name + "  " + expand + " ? \n " + content;
 
-        const aiTalks = textsToScreenplay([aiText], koeiroParam, emote);
+        const aiTalks = textsToScreenplay([aiText], koeiroParam, emote[0].emote);
         aiTextLog += aiText;
 
         // 回复队列
@@ -187,10 +187,10 @@ export default function Home() {
         type: string,
         user_name: string,
         content: string,
-        emote: string,
+        emote: [{ "emote": string, "time": number }],
         action: string) => {
 
-        console.log("2.弹幕消息 DanmakuMessage:" + content + " emote:" + emote, " user_name:" + user_name)
+        console.log("2.弹幕消息 DanmakuMessage:" + content + " emote:", emote, " user_name:" + user_name)
         // 如果content为空，不进行处理
         // 如果与上一句content完全相同，不进行处理
         if (content == null || content == '' || content == ' ') {
@@ -244,11 +244,11 @@ export default function Home() {
     const handleBehaviorAction = (
         type: string,
         content: string,
-        emote: string) => {
+        emote: [{ "emote": string, "time": number }]) => {
 
-        console.log("BehaviorActionMessage:" + content + " emote:" + emote)
+        console.log("BehaviorActionMessage:" + content, " emote:", emote)
 
-        viewer.model?.emote(emote as EmotionType)
+        viewer.model?.emote(emote[0].emote as EmotionType)
         viewer.model?.loadFBX(buildUrl(content))
     }
 
@@ -273,7 +273,7 @@ export default function Home() {
         handleBehaviorAction(
             "behavior_action",
             "thinking",
-            "happy",
+            [{ "emote": "happy", time: -1 }],
         );
 
         const yourName = user_name == null || user_name == '' ? globalConfig?.characterConfig?.yourName : user_name
@@ -295,7 +295,7 @@ export default function Home() {
         handleBehaviorAction(
             "behavior_action",
             "idle_01",
-            "neutral",
+            [{ "emote": "neutral", time: -1 }],
         );
 
         setChatProcessing(false);

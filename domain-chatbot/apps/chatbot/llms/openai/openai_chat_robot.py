@@ -41,6 +41,22 @@ class OpenAIGeneration:
                 openai_api_key=OPENAI_API_KEY,
             )
 
+    # def chat(
+    #     self,
+    #     prompt: str,
+    #     role_name: str,
+    #     you_name: str,
+    #     query: str,
+    #     short_history: list[dict[str, str]],
+    #     long_history: str,
+    # ) -> str:
+    #     prompt = prompt + query
+    #     logger.debug(f"1.GPT提问：{HumanMessage(content=prompt)}")
+    #     llm_result = self.llm.generate(messages=[[HumanMessage(content=prompt)]])
+    #     llm_result_text = llm_result.generations[0][0].text
+    #     logger.debug(f"1.GPT回复：{llm_result_text}")
+    #     return llm_result_text
+
     def chat(
         self,
         prompt: str,
@@ -50,12 +66,17 @@ class OpenAIGeneration:
         short_history: list[dict[str, str]],
         long_history: str,
     ) -> str:
-        prompt = prompt + query
-        logger.debug(f"1.GPT提问：{query}")
-        llm_result = self.llm.generate(messages=[[HumanMessage(content=prompt)]])
-        llm_result_text = llm_result.generations[0][0].text
-        logger.debug(f"1.GPT回复：{llm_result_text}")
-        return llm_result_text
+        messages = []
+        messages.append({"role": "user", "content": prompt + query})
+        logger.debug(f"1.GPT提问：{messages}")
+        response = openai.ChatCompletion.create(
+            # model="gpt-3.5-turbo",
+            model="gpt-4",
+            messages=messages,
+        )
+        answer = response["choices"][0]["message"]["content"]
+        logger.debug(f"1.GPT回复：{answer}")
+        return answer
 
     async def chatStream(
         self,
@@ -83,7 +104,6 @@ class OpenAIGeneration:
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=messages,
-            temperature=0,
         )
 
         answer = response["choices"][0]["message"]["content"]
