@@ -198,17 +198,22 @@ class GenerationEmote:
             short_history=[],
             long_history="",
         )
-        logger.debug(f"=> emote:{result}")
+        logger.debug(f"=> GPT分析的表情： {result}")
         emote = "neutral"
         try:
-            start_idx = result.find("{")
-            end_idx = result.rfind("}")
-            if start_idx != -1 and end_idx != -1:
-                json_str = result[start_idx : end_idx + 1]
-                json_data = json.loads(json_str)
-                emote = json_data["emote"]
-            else:
-                logger.warn("未找到匹配的JSON字符串")
+            # start_idx = result.find("{")
+            # end_idx = result.rfind("}")
+            # if start_idx != -1 and end_idx != -1:
+            #     json_str = result[start_idx : end_idx + 1]
+            #     json_data = json.loads(json_str)
+            #     emote = json_data["emote"]
+            # else:
+            #     logger.warn("未找到匹配的JSON字符串")
+            
+            json_data = json.loads(result)
+            emote = json_data["emote"]
+            return emote
         except Exception as e:
             logger.error("GenerationEmote error: %s" % str(e))
+
         return emote
