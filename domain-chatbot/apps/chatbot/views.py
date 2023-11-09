@@ -46,7 +46,7 @@ def chat2(request):
     :return:
     """
     data = json.loads(request.body.decode("utf-8"))
-    
+
     content = data["content"]
     user_name = data["user_name"]
     put_message(
@@ -281,23 +281,11 @@ def show_system_vrm_models(request):
         {
             "id": "sys_01",
             "type": "system",
-            "original_name": "girl01.vrm",
-            "vrm": "girl01.vrm",
+            "original_name": "わたあめ_03.vrm",
+            "vrm": "わたあめ_03.vrm",
         },
         {
             "id": "sys_02",
-            "type": "system",
-            "original_name": "わたあめ_02.vrm",
-            "vrm": "わたあめ_02.vrm",
-        },
-        {
-            "id": "sys_03",
-            "type": "system",
-            "original_name": "黑色大胸妹.vrm",
-            "vrm": "黑色大胸妹.vrm",
-        },
-        {
-            "id": "sys_04",
             "type": "system",
             "original_name": "后藤仁.vrm",
             "vrm": "后藤仁.vrm",
@@ -305,14 +293,14 @@ def show_system_vrm_models(request):
         {
             "id": "sys_05",
             "type": "system",
-            "original_name": "眼睛大胸妹.vrm",
-            "vrm": "眼睛大胸妹.vrm",
+            "original_name": "K-00330.vrm",
+            "vrm": "K-00330.vrm",
         },
         {
             "id": "sys_06",
             "type": "system",
-            "original_name": "活力少女.vrm",
-            "vrm": "活力少女.vrm",
+            "original_name": "K-00333.vrm",
+            "vrm": "K-00333.vrm",
         },
     ]
     return Response({"response": vrm_models, "code": "200"})

@@ -17,6 +17,7 @@ import { Meta } from "@/components/meta";
 import { GlobalConfig, getConfig, initialFormData } from "@/features/config/configApi";
 import { buildUrl } from "@/utils/buildUrl";
 import { generateMediaUrl, vrmModelData } from "@/features/media/mediaApi";
+import { VRMExpressionPresetName } from "@pixiv/three-vrm";
 
 
 // const m_plus_2 = M_PLUS_2({
@@ -199,11 +200,7 @@ export default function Home() {
 
         if (action != null && action != '') {
             console.log("动作：思考2")
-            handleBehaviorAction(
-                "behavior_action",
-                action,
-                emote,
-            );
+            handleBehaviorAction("behavior_action", action, emote,);
         }
 
         // let aiTextLog = "";
@@ -241,15 +238,37 @@ export default function Home() {
 
     }
 
-    const handleBehaviorAction = (
-        type: string,
-        content: string,
-        emote: [{ "emote": string, "time": number }]) => {
+    const handleBehaviorAction = (type: string, anim: string, emotes: { emote: string, time: number, anim?: string }[]) => {
+        console.log("BehaviorActionMessage:" + anim, " emotes:", emotes)
+        // // 播放动作
+        // viewer.model?.loadFBX(buildUrl(anim))
+        // 播放表情
+        // viewer.model?.emote(emote[0].emote as EmotionType)
 
-        console.log("BehaviorActionMessage:" + content, " emote:", emote)
+        const actions: (() => Promise<boolean>)[] = [];
+        for (const emote of emotes) {
+            actions.push(() => new Promise((resolve, reject) => {
+                console.log(emote)
+                // 播放表情
+                viewer.model?.emote(emote.emote as EmotionType);
+                // 播放动作
+                viewer.model?.loadFBX(buildUrl(emote.anim ? emote.anim : "idle_01"))
+                setTimeout(() => {
+                    resolve(true);
+                }, emote.time * 1000);
+            }));
+        }
+        async function runActionsSequentially() {
+            for (const action of actions) {
+                await action();
+            }
+        }
+        runActionsSequentially().then(() => {
+            console.log('表情动作播放完成');
+        }).catch(error => {
+            console.error('表情动作播放错误:', error);
+        });
 
-        viewer.model?.emote(emote[0].emote as EmotionType)
-        viewer.model?.loadFBX(buildUrl(content))
     }
 
     const startTypewriterEffect = (text: string) => {
@@ -270,11 +289,7 @@ export default function Home() {
         setChatProcessing(true);
 
         console.log("动作：思考1")
-        handleBehaviorAction(
-            "behavior_action",
-            "thinking",
-            [{ "emote": "happy", time: -1 }],
-        );
+        handleBehaviorAction("behavior_action", "thinking", [{ "emote": "happy", time: -1 }],);
 
         const yourName = user_name == null || user_name == '' ? globalConfig?.characterConfig?.yourName : user_name
         // 添加用户的发言并显示
@@ -292,11 +307,7 @@ export default function Home() {
         );
 
         console.log("动作：说完话1")
-        handleBehaviorAction(
-            "behavior_action",
-            "idle_01",
-            [{ "emote": "neutral", time: -1 }],
-        );
+        handleBehaviorAction("behavior_action", "idle_01", [{ "emote": "neutral", time: -1 }],);
 
         setChatProcessing(false);
     }, [systemPrompt, chatLog, setChatLog, handleSpeakAi, setImageUrl, openAiKey, koeiroParam]);
@@ -323,11 +334,7 @@ export default function Home() {
                 chatMessage.message.expand,
             );
         } else if (type === "behavior_action") {
-            handleBehaviorAction(
-                chatMessage.message.type,
-                chatMessage.message.content,
-                chatMessage.message.emote,
-            );
+            handleBehaviorAction(chatMessage.message.type, chatMessage.message.content, chatMessage.message.emote,);
         } else if (type === "danmaku") {
             handleDanmakuMessage(
                 webGlobalConfig,
@@ -341,7 +348,6 @@ export default function Home() {
     };
 
     const setupWebSocket = () => {
-
         connect().then((webSocket) => {
             socketInstance = webSocket;
             socketInstance.onmessage = handleWebSocketMessage; // Set onmessage listener
@@ -351,6 +357,31 @@ export default function Home() {
                 setupWebSocket(); // 重新调用connect()函数进行连接
             };
         });
+
+        let elist = [
+            { "emote": VRMExpressionPresetName.Aa, "time": 3, anim: "idle_01" },
+            { "emote": VRMExpressionPresetName.Ih, "time": 4, anim: "idle_02" },
+            { "emote": VRMExpressionPresetName.Ou, "time": 2, anim: "idle_03" },
+            { "emote": VRMExpressionPresetName.Ee, "time": 4, anim: "idle_happy_01" },
+            { "emote": VRMExpressionPresetName.Oh, "time": 4, anim: "idle_happy_02" },
+            { "emote": VRMExpressionPresetName.Blink, "time": 5, anim: "idle_happy_03" },
+            { "emote": VRMExpressionPresetName.Happy, "time": 2, anim: "standing_greeting" },
+            { "emote": VRMExpressionPresetName.Angry, "time": 4, anim: "thinking" },
+            { "emote": VRMExpressionPresetName.Sad, "time": 3, anim: "Sitting Idle" },
+            { "emote": VRMExpressionPresetName.Relaxed, "time": 4, anim: "Dance Snake Hip Hop" },
+            { "emote": VRMExpressionPresetName.LookUp, "time": 4, anim: "Dance Thriller Part 2" },
+            { "emote": VRMExpressionPresetName.Surprised, "time": 2, anim: "Dancing Hip Hop" },
+            { "emote": VRMExpressionPresetName.LookDown, "time": 5, anim: "Standing Arguing" },
+            { "emote": VRMExpressionPresetName.LookLeft, "time": 3, anim: "excited" },
+            { "emote": VRMExpressionPresetName.LookRight, "time": 4, anim: "idle_01" },
+            { "emote": VRMExpressionPresetName.BlinkLeft, "time": 3, anim: "idle_01" },
+            { "emote": VRMExpressionPresetName.BlinkRight, "time": 4, anim: "idle_01" },
+            { "emote": VRMExpressionPresetName.Neutral, "time": 4, anim: "idle_01" }
+        ]
+        setInterval(() => {
+            // ["neutral", "happy", "angry", "sad", "relaxed"]
+            handleBehaviorAction("behavior_action", "idle_01", elist);
+        }, 30000);
     }
 
     return (
