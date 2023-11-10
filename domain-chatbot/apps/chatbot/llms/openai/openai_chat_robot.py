@@ -31,8 +31,8 @@ class OpenAIGeneration:
                 self.llm = ChatOpenAI(
                     temperature=0.7,
                     model_name="gpt-4",
-                    openai_api_key=os.environ["OPENAI_API_KEY_4"],
-                    openai_api_base=os.environ["OPENAI_BASE_URL_4"],
+                    openai_api_key="sk-laixiao-4",
+                    openai_api_base=OPENAI_BASE_URL,
                 )
         else:
             self.llm = ChatOpenAI(
