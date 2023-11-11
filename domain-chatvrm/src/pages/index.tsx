@@ -98,7 +98,7 @@ export default function Home() {
 
             setChatList(params.chatList);
 
-            // 自动提问
+            // ============自动提问=============
             if (autoQuestion) {
                 clearInterval(autoQuestion)
             }
@@ -108,7 +108,7 @@ export default function Home() {
                 const params2 = JSON.parse(window.localStorage.getItem("chatVRMParams") as string);
                 let indexPos = params2.chatList.findIndex((item: { played: boolean; }) => item.played == false);
                 if (indexPos == -1 || params2.chatList.length - indexPos < 2) {
-                    console.log("===>10s自动提问：", params2.chatList.length, indexPos)
+                    console.log("===>15s自动提问：", params2.chatList.length, indexPos)
 
                     getChatResponse(messages.concat([sysMsg]).reverse()).then((content) => {
                         if (messages.length > 20) {
@@ -130,7 +130,7 @@ export default function Home() {
                         console.error(e);
                     });
                 }
-            }, 10 * 1000);
+            }, 1000 * 15);
 
         }
 

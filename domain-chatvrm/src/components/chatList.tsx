@@ -89,7 +89,7 @@ export const ChatList = forwardRef<ChatListMethods, Props>(({ messages, globalCo
         })}
 
         {/* 新增半屏高度的白色块 */}
-        <div style={{ height: '60vh' }}></div>
+        {/* <div style={{ height: '100px' }}></div> */}
       </div>
     </div>
   );
