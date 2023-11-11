@@ -40,7 +40,7 @@ class SysConfig():
     character: int
     your_name: str
     room_id: str
-    local_memory_num: int = 5
+    local_memory_num: int = 2
 
     def __init__(self) -> None:
         self.load()

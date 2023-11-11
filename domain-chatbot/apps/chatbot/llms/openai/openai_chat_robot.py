@@ -9,6 +9,7 @@ import openai
 
 logger = logging.getLogger(__name__)
 
+PROMPT = """ {info} """
 
 class OpenAIGeneration:
     llm: ChatOpenAI
@@ -67,11 +68,11 @@ class OpenAIGeneration:
         long_history: str,
     ) -> str:
         messages = []
-        messages.append({"role": "user", "content": prompt + query})
+        messages.append({"role": "user", "content": PROMPT.format(info=prompt + query)})
         logger.debug(f"1.GPT提问：{messages}")
         response = openai.ChatCompletion.create(
-            # model="gpt-3.5-turbo",
-            model="gpt-4",
+            # model="gpt-4",
+            model="gpt-3.5-turbo",
             messages=messages,
         )
         answer = response["choices"][0]["message"]["content"]
@@ -91,7 +92,7 @@ class OpenAIGeneration:
     ):
         # logger.debug(f"2.GPT提问：{query}")
         messages = []
-        messages.append({"role": role, "content": prompt})
+        messages.append({"role": role, "content": PROMPT.format(info=prompt)})
         reversed_history = list(reversed(history))
         for item in reversed_history:
             logger.debug(f"2.历史消息：{item}")
@@ -102,7 +103,8 @@ class OpenAIGeneration:
         messages.append({"role": "user", "content": query})
         logger.debug(f"2.GPT提问：{messages}")
         response = openai.ChatCompletion.create(
-            model="gpt-4",
+            # model="gpt-4",
+            model="gpt-3.5-turbo",
             messages=messages,
         )
 

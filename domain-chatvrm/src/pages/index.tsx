@@ -6,7 +6,7 @@ import { speakCharacter } from "@/features/messages/speakCharacter";
 import { MessageInputContainer } from "@/components/messageInputContainer";
 import { SYSTEM_PROMPT } from "@/features/constants/systemPromptConstants";
 import { DEFAULT_PARAM, KoeiroParam } from "@/features/constants/koeiroParam";
-import { chat } from "@/features/chat/openAiChat";
+import { chat, getChatResponse } from "@/features/chat/openAiChat";
 import { connect } from "@/features/blivedm/blivedm";
 // import { PhotoFrame } from '@/features/game/photoFrame';
 // import { M_PLUS_2, Montserrat } from "next/font/google";
@@ -18,7 +18,6 @@ import { GlobalConfig, getConfig, initialFormData } from "@/features/config/conf
 import { buildUrl } from "@/utils/buildUrl";
 import { generateMediaUrl, vrmModelData } from "@/features/media/mediaApi";
 import { VRMExpressionPresetName } from "@pixiv/three-vrm";
-
 
 // const m_plus_2 = M_PLUS_2({
 //   variable: "--font-m-plus-2",
@@ -37,7 +36,6 @@ let bind_message_event = false;
 let webGlobalConfig = initialFormData
 
 export default function Home() {
-
     const { viewer } = useContext(ViewerContext);
     const [systemPrompt, setSystemPrompt] = useState(SYSTEM_PROMPT);
     const [openAiKey, setOpenAiKey] = useState("");
@@ -67,7 +65,7 @@ export default function Home() {
         });
     };
 
-
+    let autoQuestion: string | number | NodeJS.Timeout | null | undefined = null;
     useEffect(() => {
         if (socketInstance != null) {
             socketInstance.close()
@@ -91,8 +89,51 @@ export default function Home() {
             setSystemPrompt(params.systemPrompt);
             setKoeiroParam(params.koeiroParam);
             setChatLog(params.chatLog);
+
+            params.chatList.map((item: { played: boolean; }) => item.played = true)
+            window.localStorage.setItem(
+                "chatVRMParams",
+                JSON.stringify({ systemPrompt, koeiroParam, chatLog, chatList })
+            )
+
             setChatList(params.chatList);
+
+            // 自动提问
+            if (autoQuestion) {
+                clearInterval(autoQuestion)
+            }
+            let messages: Message[] = []
+            let sysMsg: Message = { role: "user", content: "你是一位购物愿望收集师，你会分析人们高频使用的商品，然后随机输出一个虚拟游客名和他想买的商品。不要输出思考过程，不要说多余的话，你只需要回复该游客想买什么，已经想买的商品不再重复输出，游戏名字随机，只输出一位游客的愿望。输出示例：“张三：我想买迪奥的999口红”。", user_name: "user" };
+            autoQuestion = setInterval(() => {
+                const params2 = JSON.parse(window.localStorage.getItem("chatVRMParams") as string);
+                let indexPos = params2.chatList.findIndex((item: { played: boolean; }) => item.played == false);
+                if (indexPos == -1 || params2.chatList.length - indexPos < 2) {
+                    console.log("===>10s自动提问：", params2.chatList.length, indexPos)
+
+                    getChatResponse(messages.concat([sysMsg]).reverse()).then((content) => {
+                        if (messages.length > 20) {
+                            messages.shift();
+                        }
+                        messages.push({ role: "assistant", content: content, user_name: "assistant" })
+
+                        // console.log({ content: content, user_name: content.split("：")[0] })
+                        fetch('http://localhost:8000/chatbot/chat2', {
+                            method: 'POST',
+                            body: JSON.stringify({ content: content, user_name: content.split("：")[0] }),
+                            headers: { 'Content-Type': 'application/json' },
+                        })
+                            .then(response => response.json())
+                            .then(data => console.log(data))
+                            .catch(error => console.error('Error:', error));
+
+                    }).catch((e) => {
+                        console.error(e);
+                    });
+                }
+            }, 10 * 1000);
+
         }
+
     }, []);
 
 
@@ -157,14 +198,14 @@ export default function Home() {
             params["chatList"] = [];
         }
         let sTime = new Date().getTime();
-        const chatListMsgs: Message[] = [...params.chatList, { type, user_name, content, emote, expand, time: sTime }];
+        const chatListMsgs: Message[] = [...params.chatList, { type, user_name, content, emote, expand, time: sTime, played: false }];
         setChatList(chatListMsgs);
 
         // 生成并播放每个句子的声音，显示回答
         const currentAssistantMessage = sentences.join(" ");
         setSubtitle(aiTextLog);
 
-
+        // 播放队列
         handleSpeakAi(globalConfig, aiTalks[0], () => {
             setAssistantMessage(currentAssistantMessage);
             // handleSubtitle(aiText + " "); // 添加空格以区分不同的字幕
@@ -175,7 +216,19 @@ export default function Home() {
             const messageLogAssistant: Message[] = [...params.chatLog, { role: "assistant", content: aiTextLog, "user_name": user_name },];
             setChatLog(messageLogAssistant);
 
-            let indexPos = chatListMsgs.findIndex(item => item.time == sTime);
+            // 滑到当前消息处
+            let indexPos = params.chatList.findIndex((item: any, index: number) => {
+                if (item.time == sTime) {
+                    params.chatList[index].played = true;
+                    return true;
+                } else {
+                    return false;
+                }
+            });
+            window.localStorage.setItem(
+                "chatVRMParams",
+                JSON.stringify({ systemPrompt, koeiroParam, chatLog, chatList: params.chatList })
+            )
             if (indexPos != -1) {
                 (chatListRef.current as any)?.scrollToMessage(indexPos);
             }
@@ -358,30 +411,30 @@ export default function Home() {
             };
         });
 
-        let elist = [
-            { "emote": VRMExpressionPresetName.Aa, "time": 3, anim: "idle_01" },
-            { "emote": VRMExpressionPresetName.Ih, "time": 4, anim: "idle_02" },
-            { "emote": VRMExpressionPresetName.Ou, "time": 2, anim: "idle_03" },
-            { "emote": VRMExpressionPresetName.Ee, "time": 4, anim: "idle_happy_01" },
-            { "emote": VRMExpressionPresetName.Oh, "time": 4, anim: "idle_happy_02" },
-            { "emote": VRMExpressionPresetName.Blink, "time": 5, anim: "idle_happy_03" },
-            { "emote": VRMExpressionPresetName.Happy, "time": 2, anim: "standing_greeting" },
-            { "emote": VRMExpressionPresetName.Angry, "time": 4, anim: "thinking" },
-            { "emote": VRMExpressionPresetName.Sad, "time": 3, anim: "Sitting Idle" },
-            { "emote": VRMExpressionPresetName.Relaxed, "time": 4, anim: "Dance Snake Hip Hop" },
-            { "emote": VRMExpressionPresetName.LookUp, "time": 4, anim: "Dance Thriller Part 2" },
-            { "emote": VRMExpressionPresetName.Surprised, "time": 2, anim: "Dancing Hip Hop" },
-            { "emote": VRMExpressionPresetName.LookDown, "time": 5, anim: "Standing Arguing" },
-            { "emote": VRMExpressionPresetName.LookLeft, "time": 3, anim: "excited" },
-            { "emote": VRMExpressionPresetName.LookRight, "time": 4, anim: "idle_01" },
-            { "emote": VRMExpressionPresetName.BlinkLeft, "time": 3, anim: "idle_01" },
-            { "emote": VRMExpressionPresetName.BlinkRight, "time": 4, anim: "idle_01" },
-            { "emote": VRMExpressionPresetName.Neutral, "time": 4, anim: "idle_01" }
-        ]
-        setInterval(() => {
-            // ["neutral", "happy", "angry", "sad", "relaxed"]
-            handleBehaviorAction("behavior_action", "idle_01", elist);
-        }, 30000);
+        // let elist = [
+        //     { "emote": VRMExpressionPresetName.Aa, "time": 5, anim: "idle_01" },
+        //     { "emote": VRMExpressionPresetName.Ih, "time": 4, anim: "idle_02" },
+        //     { "emote": VRMExpressionPresetName.Ou, "time": 5, anim: "idle_03" },
+        //     { "emote": VRMExpressionPresetName.Ee, "time": 4, anim: "idle_happy_01" },
+        //     { "emote": VRMExpressionPresetName.Oh, "time": 4, anim: "idle_happy_02" },
+        //     { "emote": VRMExpressionPresetName.Blink, "time": 5, anim: "idle_happy_03" },
+        //     { "emote": VRMExpressionPresetName.Happy, "time": 2, anim: "standing_greeting" },
+        //     { "emote": VRMExpressionPresetName.Angry, "time": 4, anim: "thinking" },
+        //     { "emote": VRMExpressionPresetName.Sad, "time": 3, anim: "Sitting Idle" },
+        //     { "emote": VRMExpressionPresetName.Relaxed, "time": 4, anim: "Dance Snake Hip Hop" },
+        //     { "emote": VRMExpressionPresetName.LookUp, "time": 4, anim: "Dance Thriller Part 2" },
+        //     { "emote": VRMExpressionPresetName.Surprised, "time": 2, anim: "Dancing Hip Hop" },
+        //     { "emote": VRMExpressionPresetName.LookDown, "time": 5, anim: "Standing Arguing" },
+        //     { "emote": VRMExpressionPresetName.LookLeft, "time": 3, anim: "excited" },
+        //     { "emote": VRMExpressionPresetName.LookRight, "time": 4, anim: "idle_01" },
+        //     { "emote": VRMExpressionPresetName.BlinkLeft, "time": 3, anim: "idle_01" },
+        //     { "emote": VRMExpressionPresetName.BlinkRight, "time": 4, anim: "idle_01" },
+        //     { "emote": VRMExpressionPresetName.Neutral, "time": 4, anim: "idle_01" }
+        // ]
+        // setInterval(() => {
+        //     // ["neutral", "happy", "angry", "sad", "relaxed"]
+        //     handleBehaviorAction("behavior_action", "idle_01", elist);
+        // }, 30000);
     }
 
     return (

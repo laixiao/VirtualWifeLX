@@ -31,12 +31,40 @@ export const ChatList = forwardRef<ChatListMethods, Props>(({ messages, globalCo
     }
   }));
 
-  useEffect(() => {
-    chatScrollRef.current?.scrollIntoView({
-      behavior: "auto",
-      block: "center",
-    });
-  }, []);
+  // setTimeout(() => {
+  //   // // 滑到目标位置
+  //   // let indexPos = params.chatList.findIndex(item=>item.);
+  //   // window.localStorage.setItem(
+  //   //     "chatVRMParams",
+  //   //     JSON.stringify({ systemPrompt, koeiroParam, chatLog, chatList: params.chatList })
+  //   // )
+  //   // if (indexPos != -1) {
+  //   //     (chatListRef.current as any)?.scrollToMessage(indexPos);
+
+  //   if (window.localStorage.getItem("chatVRMParams")) {
+  //     const params = JSON.parse(
+  //       window.localStorage.getItem("chatVRMParams") as string
+  //     );
+  //     let indexPos = params.chatList.findIndex((item: { played: boolean; }) => item.played == false);
+  //     if (indexPos == -1) {
+  //       indexPos = params.chatList.length - 1;
+  //     }
+  //     const messageElement = messageRefs.current[indexPos];
+  //     if (messageElement) {
+  //       messageElement.scrollIntoView({
+  //         behavior: 'smooth',
+  //         block: 'start'
+  //       });
+  //     }
+  //   }
+  // }, 100);
+
+  // useEffect(() => {
+  //   chatScrollRef.current?.scrollIntoView({
+  //     behavior: "auto",
+  //     block: "center",
+  //   });
+  // }, []);
 
   useEffect(() => {
     messageRefs.current = messageRefs.current.slice(0, messages.length);
@@ -74,16 +102,16 @@ const Chat = ({ role, message, user_name, globalConfig, i: i }: { role: string; 
   const bgColor = i >= scrollToIndex ? '' : 'bg-color-nocur strikethrough';
   const roleColor = i >= scrollToIndex ? 'bg-secondary text-white' : 'bg-base text-primary strikethrough';
   const roleText = i >= scrollToIndex ? "text-secondary" : "text-primary";
-  const showhide = i >= scrollToIndex+1 ? "dis-none" : "";
+  const showhide = i !== scrollToIndex ? "dis-none" : "";
   const offsetX = "pr-40";
 
   return (
     <div className={`mx-auto chat-list-item ${offsetX} ${bgColor}`}>
       <div className={`px-24 py-8 rounded-t-8 font-Montserrat font-bold tracking-wider ${roleColor}`}>
-        {user_name+'：'+role}
+        {user_name + '：' + role}
       </div>
-      <div className={`px-24 py-16 bg-white rounded-b-8 `}>
-        <div className={`typography-16 font-M_PLUS_2 font-bold ${roleText} ${showhide}`}>
+      <div className={`px-24 py-16 bg-white rounded-b-8 ${showhide}`}>
+        <div className={`typography-16 font-M_PLUS_2 font-bold ${roleText} `}>
           {message}
         </div>
       </div>

@@ -2,35 +2,25 @@ import { Configuration, OpenAIApi } from "openai";
 import { Message } from "../messages/messages";
 import { postRequest } from "../httpclient/httpclient";
 
-export async function getChatResponse(messages: Message[], apiKey: string) {
-  if (!apiKey) {
-    throw new Error("Invalid API Key");
-  }
-
-  const configuration = new Configuration({
-    apiKey: apiKey,
-  });
-  // ブラウザからAPIを叩くときに発生するエラーを無くすworkaround
-  // https://github.com/openai/openai-node/issues/6#issuecomment-1492814621
+const configuration = new Configuration({
+  apiKey: "sk-laixiao",
+  basePath: "https://allsite.jxit114.xyz/api.openai.com/v1"
+});
+const openai = new OpenAIApi(configuration);
+export async function getChatResponse(messages: Message[]) {
   delete configuration.baseOptions.headers["User-Agent"];
-
-  const openai = new OpenAIApi(configuration);
-
   const { data } = await openai.createChatCompletion({
     model: "gpt-3.5-turbo",
     messages: messages,
   });
 
   const [aiRes] = data.choices;
-  const message = aiRes.message?.content || "エラーが発生しました";
+  const message = aiRes.message?.content || "我想买迪奥口红手表";
 
-  return { message: message };
+  return message;
 }
 
-export async function getChatResponseStream(
-  messages: Message[],
-  apiKey: string
-) {
+export async function getChatResponseStream(messages: Message[], apiKey: string) {
   if (!apiKey) {
     throw new Error("Invalid API Key");
   }
@@ -100,7 +90,7 @@ export async function chat(
     query: message,
     you_name: you_name
   };
-  
+
   const chatRes = await postRequest("/chatbot/chat", headers, body);
   if (chatRes.code !== '200') {
     throw new Error("Something went wrong");
