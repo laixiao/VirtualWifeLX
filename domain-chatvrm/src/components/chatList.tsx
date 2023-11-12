@@ -108,7 +108,7 @@ const Chat = ({ role, message, user_name, globalConfig, i: i }: { role: string; 
   return (
     <div className={`mx-auto chat-list-item ${offsetX} ${bgColor}`}>
       <div className={`px-24 py-8 rounded-t-8 font-Montserrat font-bold tracking-wider ${roleColor}`}>
-        {user_name + '：' + role}
+        {role}
       </div>
       <div className={`px-24 py-16 bg-white rounded-b-8 ${showhide}`}>
         <div className={`typography-16 font-M_PLUS_2 font-bold ${roleText} `}>

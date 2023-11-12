@@ -119,7 +119,7 @@ export default function Home() {
                         // console.log({ content: content, user_name: content.split("：")[0] })
                         fetch('http://localhost:8000/chatbot/chat2', {
                             method: 'POST',
-                            body: JSON.stringify({ content: content, user_name: content.split("：")[0] }),
+                            body: JSON.stringify({ content: content, user_name: ""/* content.split("：")[0] */ }),
                             headers: { 'Content-Type': 'application/json' },
                         })
                             .then(response => response.json())
@@ -171,6 +171,14 @@ export default function Home() {
         [viewer]
     );
 
+    const markMessageAsPlayed = useCallback((timeStamp: number | undefined) => {
+        setChatList(prevChatList =>
+            prevChatList.map(item =>
+                item.time === timeStamp ? { ...item, played: true } : item
+            )
+        );
+    }, [setChatList]);
+
     const handleUserMessage = useCallback((
         globalConfig: GlobalConfig,
         type: string,
@@ -219,12 +227,13 @@ export default function Home() {
             // 滑到当前消息处
             let indexPos = params.chatList.findIndex((item: any, index: number) => {
                 if (item.time == sTime) {
-                    params.chatList[index].played = true;
+                    // params.chatList[index].played = true;
                     return true;
                 } else {
                     return false;
                 }
             });
+            markMessageAsPlayed(sTime);
             window.localStorage.setItem(
                 "chatVRMParams",
                 JSON.stringify({ systemPrompt, koeiroParam, chatLog, chatList: params.chatList })
