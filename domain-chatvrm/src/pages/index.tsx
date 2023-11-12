@@ -18,6 +18,7 @@ import { GlobalConfig, getConfig, initialFormData } from "@/features/config/conf
 import { buildUrl } from "@/utils/buildUrl";
 import { generateMediaUrl, vrmModelData } from "@/features/media/mediaApi";
 import { VRMExpressionPresetName } from "@pixiv/three-vrm";
+import { custoRoleFormData, customroleList } from "@/features/customRole/customRoleApi";
 
 // const m_plus_2 = M_PLUS_2({
 //   variable: "--font-m-plus-2",
@@ -34,6 +35,9 @@ import { VRMExpressionPresetName } from "@pixiv/three-vrm";
 let socketInstance: WebSocket | null = null;
 let bind_message_event = false;
 let webGlobalConfig = initialFormData
+let roleList: any = null;
+let curRole: any = null;
+let autoQuestion: string | number | NodeJS.Timeout | null | undefined = null;
 
 export default function Home() {
     const { viewer } = useContext(ViewerContext);
@@ -41,6 +45,7 @@ export default function Home() {
     const [openAiKey, setOpenAiKey] = useState("");
     const [koeiroParam, setKoeiroParam] = useState<KoeiroParam>(DEFAULT_PARAM);
     const [chatProcessing, setChatProcessing] = useState(false);
+    const [customRoles, setCustomRoles] = useState([custoRoleFormData]);
     const [chatLog, setChatLog] = useState<Message[]>([]);
     const [chatList, setChatList] = useState<Message[]>([]);
     const [assistantMessage, setAssistantMessage] = useState("");
@@ -65,7 +70,52 @@ export default function Home() {
         });
     };
 
-    let autoQuestion: string | number | NodeJS.Timeout | null | undefined = null;
+    // ============自动提问=============
+    const aiAsk = () => {
+        if (autoQuestion) {
+            clearInterval(autoQuestion)
+        }
+        if (curRole && curRole.scenario && curRole.scenario.length > 0) {
+            let messages: Message[] = [];
+            let sysMsg: Message = { role: "user", content: `${curRole.scenario}`, user_name: "user" };
+            console.log("自动提问-提示词-user：")
+            console.log(curRole.scenario)
+            autoQuestion = setInterval(() => {
+                const params2 = JSON.parse(window.localStorage.getItem("chatVRMParams") as string);
+                let indexPos = params2.chatList.findIndex((item: { played: boolean; }) => item.played == false);
+                if (indexPos == -1 || params2.chatList.length - indexPos < 2) {
+                    console.log("===>15s自动提问，列表长度： ", params2.chatList.length, " 当前播放：" + indexPos, " 剩余未播放：" + (params2.chatList.length - indexPos))
+
+                    getChatResponse(messages.concat([sysMsg]).reverse()).then((data) => {
+                        try {
+                            var jsonObj = JSON.parse(data);
+                            console.log(jsonObj);
+
+                            if (messages.length > 20) {
+                                messages.shift();
+                            }
+                            messages.push({ role: "assistant", content: jsonObj.content, user_name: "assistant" })
+
+                            // console.log({ content: content, user_name: content.split("：")[0] })
+                            fetch('http://localhost:8000/chatbot/chat2', {
+                                method: 'POST',
+                                body: JSON.stringify({ content: jsonObj.content, user_name: jsonObj.name/* content.split("：")[0] */ }),
+                                headers: { 'Content-Type': 'application/json' },
+                            }).then(response => response.json())
+                                .then(data2 => console.log(data2))
+                                .catch(error => console.error('Error:', error));
+                        } catch (error) {
+                            // 捕获并处理异常
+                            console.error('自动提问-解析异常: ', data);
+                        }
+                    }).catch((e) => {
+                        console.error(e);
+                    });
+                }
+            }, 1000 * 15);
+        }
+    }
+
     useEffect(() => {
         if (socketInstance != null) {
             socketInstance.close()
@@ -74,14 +124,23 @@ export default function Home() {
             console.log(">>>> setupWebSocket")
             bind_message_event = true;
             setupWebSocket(); // Set up WebSocket when component mounts
+
+            getConfig().then(data => {
+                webGlobalConfig = data
+                setGlobalConfig(data)
+                if (data.background_url != '') {
+                    setBackgroundImageUrl(generateMediaUrl(data.background_url))
+                }
+
+                customroleList().then(data => {
+                    roleList = data;
+                    curRole = roleList.find((item: any) => item.id == webGlobalConfig.characterConfig.character)
+                    console.log("当前角色参数：", curRole)
+
+                    aiAsk();
+                })
+            })
         }
-        getConfig().then(data => {
-            webGlobalConfig = data
-            setGlobalConfig(data)
-            if (data.background_url != '') {
-                setBackgroundImageUrl(generateMediaUrl(data.background_url))
-            }
-        })
         if (window.localStorage.getItem("chatVRMParams")) {
             const params = JSON.parse(
                 window.localStorage.getItem("chatVRMParams") as string
@@ -98,42 +157,6 @@ export default function Home() {
 
             setChatList(params.chatList);
 
-            // ============自动提问=============
-            if (autoQuestion) {
-                clearInterval(autoQuestion)
-            }
-            let messages: Message[] = []
-            let qStr = `
-                你是一位购物愿望收集师，你会分析人们高频使用的商品，然后随机输出一个虚拟游客名和他想买的商品。不要输出思考过程，不要说多余的话，你只需要回复该游客想买什么，已经想买的商品不再重复输出，游戏名字随机，只输出一位游客的愿望。输出示例：“张三：我想买迪奥的999口红”。
-            `;
-            let sysMsg: Message = { role: "user", content: qStr, user_name: "user" };
-            autoQuestion = setInterval(() => {
-                const params2 = JSON.parse(window.localStorage.getItem("chatVRMParams") as string);
-                let indexPos = params2.chatList.findIndex((item: { played: boolean; }) => item.played == false);
-                if (indexPos == -1 || params2.chatList.length - indexPos < 2) {
-                    console.log("===>15s自动提问，列表长度： ", params2.chatList.length, " 当前播放：" + indexPos, " 剩余未播放：" + (params2.chatList.length - indexPos))
-
-                    getChatResponse(messages.concat([sysMsg]).reverse()).then((content) => {
-                        if (messages.length > 20) {
-                            messages.shift();
-                        }
-                        messages.push({ role: "assistant", content: content, user_name: "assistant" })
-
-                        // console.log({ content: content, user_name: content.split("：")[0] })
-                        fetch('http://localhost:8000/chatbot/chat2', {
-                            method: 'POST',
-                            body: JSON.stringify({ content: content, user_name: ""/* content.split("：")[0] */ }),
-                            headers: { 'Content-Type': 'application/json' },
-                        })
-                            .then(response => response.json())
-                            .then(data => console.log(data))
-                            .catch(error => console.error('Error:', error));
-
-                    }).catch((e) => {
-                        console.error(e);
-                    });
-                }
-            }, 1000 * 15);
 
         }
 

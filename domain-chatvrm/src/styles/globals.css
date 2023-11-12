@@ -219,3 +219,8 @@ input[type="radio"] {
   height: 260px;
   font-size: 12px;
 }
+
+.role-info-scenario {
+  height: 100px;
+  font-size: 12px;
+}

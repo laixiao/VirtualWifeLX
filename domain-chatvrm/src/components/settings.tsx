@@ -896,6 +896,19 @@ export const Settings = ({
             />
           </div>
 
+          <div className="input-group">
+            <label>自动提问-提示词-user</label>
+            <textarea
+              className="resize-y w-full p-2 role-info-scenario"
+              name="scenario"
+              defaultValue={customRole.scenario}
+              onChange={e => {
+                customRole.scenario = e.target.value
+                setCustomRole(customRole)
+              }}
+            />
+          </div>
+
           {/* <div className="input-group">
             <label>视角</label>
             <textarea

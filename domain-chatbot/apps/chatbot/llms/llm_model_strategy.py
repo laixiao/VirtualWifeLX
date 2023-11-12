@@ -84,7 +84,7 @@ class OpenAILlmModelStrategy(LlmModelStrategy):
         )
 
     def get_strategy(self, model_name: str = "gpt-3.5-turbo") -> LlmModelStrategy:
-        logger.debug(f"OpenAILlmModelStrategy模型：{model_name}")
+        # logger.debug(f"OpenAILlmModelStrategy模型：{model_name}")
         if model_name == "gpt-3.5-turbo":
             return self.openai3_5
         else:
@@ -193,7 +193,7 @@ class LlmModelDriver:
 
     def get_strategy(self, type: str, model_name: str = "gpt-3.5-turbo") -> LlmModelStrategy:
         if type == "openai":
-            logger.debug(f"LlmModelDriver模型：{model_name}")
+            # logger.debug(f"LlmModelDriver模型：{model_name}")
             if model_name == "gpt-3.5-turbo":
                 return self.openai3_5
             else:
