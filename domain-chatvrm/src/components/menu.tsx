@@ -119,7 +119,7 @@ export const Menu = ({
             onClick={() => setShowSettings(true)}
           ></IconButton>
 
-          {showChatLog ? (
+         {/*  {showChatLog ? (
             <IconButton
               iconName="24/CommentFill"
               label="会话记录"
@@ -151,7 +151,8 @@ export const Menu = ({
               disabled={chatList.length <= 0}
               onClick={() => setShowChatList(true)}
             />
-          )}
+          )} */}
+          
         </div>
       </div>
 

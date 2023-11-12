@@ -103,12 +103,15 @@ export default function Home() {
                 clearInterval(autoQuestion)
             }
             let messages: Message[] = []
-            let sysMsg: Message = { role: "user", content: "你是一位购物愿望收集师，你会分析人们高频使用的商品，然后随机输出一个虚拟游客名和他想买的商品。不要输出思考过程，不要说多余的话，你只需要回复该游客想买什么，已经想买的商品不再重复输出，游戏名字随机，只输出一位游客的愿望。输出示例：“张三：我想买迪奥的999口红”。", user_name: "user" };
+            let qStr = `
+                你是一位购物愿望收集师，你会分析人们高频使用的商品，然后随机输出一个虚拟游客名和他想买的商品。不要输出思考过程，不要说多余的话，你只需要回复该游客想买什么，已经想买的商品不再重复输出，游戏名字随机，只输出一位游客的愿望。输出示例：“张三：我想买迪奥的999口红”。
+            `;
+            let sysMsg: Message = { role: "user", content: qStr, user_name: "user" };
             autoQuestion = setInterval(() => {
                 const params2 = JSON.parse(window.localStorage.getItem("chatVRMParams") as string);
                 let indexPos = params2.chatList.findIndex((item: { played: boolean; }) => item.played == false);
                 if (indexPos == -1 || params2.chatList.length - indexPos < 2) {
-                    console.log("===>15s自动提问：", params2.chatList.length, indexPos)
+                    console.log("===>15s自动提问，列表长度： ", params2.chatList.length, " 当前播放：" + indexPos, " 剩余未播放：" + (params2.chatList.length - indexPos))
 
                     getChatResponse(messages.concat([sysMsg]).reverse()).then((content) => {
                         if (messages.length > 20) {
@@ -187,15 +190,19 @@ export default function Home() {
         emote: [{ "emote": string, "time": number }],
         expand: string) => {
 
-        console.log("3.AI回复消息 RobotMessage:" + content + " emote:", emote, " expand:" + expand, " user_name:" + user_name)
+        console.log("弹幕回复:" + expand)
         // 如果content为空，不进行处理
         // 如果与上一句content完全相同，不进行处理
         if (content == null || content == '' || content == ' ') {
             return
         }
+
+        // const sentences = new Array<string>();
         let aiTextLog = "";
-        const sentences = new Array<string>();
-        const aiText = user_name + "  " + expand + " ? \n " + content;
+        let aiText = expand + " ? \n " + content;
+        if (user_name) {
+            aiText = user_name + " ： " + expand + " ? \n " + content;
+        }
 
         const aiTalks = textsToScreenplay([aiText], koeiroParam, emote[0].emote);
         aiTextLog += aiText;
@@ -210,38 +217,47 @@ export default function Home() {
         setChatList(chatListMsgs);
 
         // 生成并播放每个句子的声音，显示回答
-        const currentAssistantMessage = sentences.join(" ");
-        setSubtitle(aiTextLog);
+        // const currentAssistantMessage = sentences.join(" ");
+        // setSubtitle(aiTextLog);
 
         // 播放队列
         handleSpeakAi(globalConfig, aiTalks[0], () => {
-            setAssistantMessage(currentAssistantMessage);
-            // handleSubtitle(aiText + " "); // 添加空格以区分不同的字幕
-            startTypewriterEffect(aiTextLog);
-
-            // 在日志中添加助手的回复
-            const params = JSON.parse(window.localStorage.getItem("chatVRMParams") as string);
-            const messageLogAssistant: Message[] = [...params.chatLog, { role: "assistant", content: aiTextLog, "user_name": user_name },];
-            setChatLog(messageLogAssistant);
-
-            // 滑到当前消息处
-            let indexPos = params.chatList.findIndex((item: any, index: number) => {
-                if (item.time == sTime) {
-                    // params.chatList[index].played = true;
-                    return true;
-                } else {
-                    return false;
-                }
-            });
-            markMessageAsPlayed(sTime);
-            window.localStorage.setItem(
-                "chatVRMParams",
-                JSON.stringify({ systemPrompt, koeiroParam, chatLog, chatList: params.chatList })
-            )
-            if (indexPos != -1) {
-                (chatListRef.current as any)?.scrollToMessage(indexPos);
+            let myTitle = expand + " ? \n ";
+            if (user_name) {
+                myTitle = user_name + " ： " + expand + " ? \n ";
             }
+            setSubtitle(myTitle);
 
+            // setAssistantMessage(currentAssistantMessage);
+
+            // handleSubtitle(aiText + " "); // 添加空格以区分不同的字幕
+            // startTypewriterEffect(aiTextLog);
+
+            // // 在日志中添加助手的回复
+            // const params = JSON.parse(window.localStorage.getItem("chatVRMParams") as string);
+            // const messageLogAssistant: Message[] = [...params.chatLog, { role: "assistant", content: aiTextLog, "user_name": user_name },];
+            // setChatLog(messageLogAssistant);
+
+            // // 滑到当前消息处
+            // let indexPos = params.chatList.findIndex((item: any, index: number) => {
+            //     if (item.time == sTime) {
+            //         // params.chatList[index].played = true;
+            //         return true;
+            //     } else {
+            //         return false;
+            //     }
+            // });
+            // window.localStorage.setItem(
+            //     "chatVRMParams",
+            //     JSON.stringify({ systemPrompt, koeiroParam, chatLog, chatList: params.chatList })
+            // )
+            // if (indexPos != -1) {
+            //     (chatListRef.current as any)?.scrollToMessage(indexPos);
+            // }
+
+        }, () => {
+            // 标记消息为已读
+            markMessageAsPlayed(sTime);
         });
     }, [])
 
@@ -253,7 +269,7 @@ export default function Home() {
         emote: [{ "emote": string, "time": number }],
         action: string) => {
 
-        console.log("2.弹幕消息 DanmakuMessage:" + content + " emote:", emote, " user_name:" + user_name)
+        console.log("弹幕消息提问:" + content + " emote:", emote, " user_name:" + user_name)
         // 如果content为空，不进行处理
         // 如果与上一句content完全相同，不进行处理
         if (content == null || content == '' || content == ' ') {
@@ -461,22 +477,53 @@ export default function Home() {
                 <Meta />
                 <Introduction openAiKey={openAiKey} onChangeAiKey={setOpenAiKey} />
                 <VrmViewer globalConfig={globalConfig} />
-                <div className="flex items-center justify-center">
+                {/* <div className="flex items-center justify-center">
                     <div className="absolute bottom-1/4 z-10" style={{
                         fontFamily: "fzfs",
                         fontSize: "24px",
                         color: "#555",
-                        display: "none"
+                        // display: "none"
                     }}>
                         {displayedSubtitle}
                     </div>
-                </div>
+                </div> */}
                 {/* 消息输入框 */}
                 {/* <MessageInputContainer
                     isChatProcessing={chatProcessing}
                     onChatProcessStart={handleSendChat}
                     globalConfig={globalConfig}
                 /> */}
+
+                {/* 当 subtitle 存在时才显示题目和答案区域 */}
+                {subtitle && (
+                    <div style={{
+                        position: 'absolute',
+                        top: '10%',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        width: '80%',
+                        backgroundColor: '#2c3e50',
+                        backgroundImage: 'url("blackboard-texture.png")',
+                        color: '#ecf0f1',
+                        padding: '20px',
+                        borderRadius: '10px',
+                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
+                        fontFamily: '"Your Anime Font", "Permanent Marker", Chalkduster, cursive', // 动漫风格字体
+                        fontSize: '24px',
+                        textAlign: 'center',
+                        lineHeight: '1.5',
+                        boxSizing: 'border-box',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
+                        <div style={{
+                            textShadow: '0px 0px 3px rgba(255, 255, 255, 0.5)'
+                        }}>{subtitle}</div>
+                    </div>
+                )}
+
                 <Menu
                     globalConfig={globalConfig}
                     openAiKey={openAiKey}
