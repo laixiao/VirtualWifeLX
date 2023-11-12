@@ -83,7 +83,7 @@ class ProcessCore:
                 time.sleep(1)
                 self.chat(you_name, query, retry_count + 1)  # 重试，并增加重试计数
             else:
-                error_message = "尝试了多次仍然失败，请稍后再试！"
+                error_message = "欢迎新进直播间的朋友"
                 realtime_callback(
                     role_name=role_name,
                     you_name=you_name,

@@ -83,34 +83,36 @@ export default function Home() {
             autoQuestion = setInterval(() => {
                 const params2 = JSON.parse(window.localStorage.getItem("chatVRMParams") as string);
                 let indexPos = params2.chatList.findIndex((item: { played: boolean; }) => item.played == false);
-                if (indexPos == -1 || params2.chatList.length - indexPos < 2) {
+                if (indexPos == -1 || params2.chatList.length - indexPos < 3) {
                     console.log("===>15s自动提问，列表长度： ", params2.chatList.length, " 当前播放：" + indexPos, " 剩余未播放：" + (params2.chatList.length - indexPos))
 
                     getChatResponse(messages.concat([sysMsg]).reverse()).then((data) => {
-                        try {
-                            var jsonObj = JSON.parse(data);
-                            console.log(jsonObj);
+                        // try {
+                        //     var jsonObj = JSON.parse(data);
+                        //     console.log(jsonObj);
 
                             if (messages.length > 20) {
                                 messages.shift();
                             }
-                            messages.push({ role: "assistant", content: jsonObj.content, user_name: "assistant" })
+                            messages.push({ role: "assistant", content: data, user_name: "assistant" })
 
                             // console.log({ content: content, user_name: content.split("：")[0] })
                             fetch('http://localhost:8000/chatbot/chat2', {
                                 method: 'POST',
-                                body: JSON.stringify({ content: jsonObj.content, user_name: jsonObj.name/* content.split("：")[0] */ }),
+                                body: JSON.stringify({ content: data, user_name: ""/* content.split("：")[0] */ }),
                                 headers: { 'Content-Type': 'application/json' },
                             }).then(response => response.json())
                                 .then(data2 => console.log(data2))
                                 .catch(error => console.error('Error:', error));
-                        } catch (error) {
-                            // 捕获并处理异常
-                            console.error('自动提问-解析异常: ', data);
-                        }
+                        // } catch (error) {
+                        //     // 捕获并处理异常
+                        //     console.error('自动提问-解析异常: ', data);
+                        // }
                     }).catch((e) => {
                         console.error(e);
                     });
+                } else {
+                    console.log("已有多个待回复内容", params2.chatList.length, " 当前播放：" + indexPos, " 剩余未播放：" + (params2.chatList.length - indexPos))
                 }
             }, 1000 * 15);
         }
@@ -222,9 +224,9 @@ export default function Home() {
 
         // const sentences = new Array<string>();
         let aiTextLog = "";
-        let aiText = expand + " ? \n " + content;
+        let aiText = expand + " \n " + content;
         if (user_name) {
-            aiText = user_name + " ： " + expand + " ? \n " + content;
+            aiText = user_name + " ： " + expand + " \n " + content;
         }
 
         const aiTalks = textsToScreenplay([aiText], koeiroParam, emote[0].emote);
@@ -245,9 +247,9 @@ export default function Home() {
 
         // 播放队列
         handleSpeakAi(globalConfig, aiTalks[0], () => {
-            let myTitle = expand + " ? \n ";
+            let myTitle = expand + " \n ";
             if (user_name) {
-                myTitle = user_name + " ： " + expand + " ? \n ";
+                myTitle = user_name + " ： " + expand + " \n ";
             }
             setSubtitle(myTitle);
 
@@ -521,7 +523,7 @@ export default function Home() {
                 {subtitle && (
                     <div style={{
                         position: 'absolute',
-                        top: '10%',
+                        top: '5%',
                         left: '50%',
                         transform: 'translateX(-50%)',
                         width: '80%',
@@ -531,7 +533,7 @@ export default function Home() {
                         padding: '20px',
                         borderRadius: '10px',
                         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
-                        fontFamily: '"Your Anime Font", "Permanent Marker", Chalkduster, cursive', // 动漫风格字体
+                        fontFamily: '"STKaiti", serif', // 高清正楷字体
                         fontSize: '24px',
                         textAlign: 'center',
                         lineHeight: '1.5',
@@ -539,6 +541,7 @@ export default function Home() {
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
+                        fontWeight: 'bolder',
                         justifyContent: 'center'
                     }}>
                         <div style={{
