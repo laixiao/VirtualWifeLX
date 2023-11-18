@@ -38,6 +38,7 @@ let webGlobalConfig = initialFormData
 let roleList: any = null;
 let curRole: any = null;
 let autoQuestion: string | number | NodeJS.Timeout | null | undefined = null;
+let idle_01: string | number | NodeJS.Timeout | null | undefined = null;
 
 export default function Home() {
     const { viewer } = useContext(ViewerContext);
@@ -91,19 +92,19 @@ export default function Home() {
                         //     var jsonObj = JSON.parse(data);
                         //     console.log(jsonObj);
 
-                            if (messages.length > 20) {
-                                messages.shift();
-                            }
-                            messages.push({ role: "assistant", content: data, user_name: "assistant" })
+                        if (messages.length > 20) {
+                            messages.shift();
+                        }
+                        messages.push({ role: "assistant", content: data, user_name: "assistant" })
 
-                            // console.log({ content: content, user_name: content.split("：")[0] })
-                            fetch('http://localhost:8000/chatbot/chat2', {
-                                method: 'POST',
-                                body: JSON.stringify({ content: data, user_name: ""/* content.split("：")[0] */ }),
-                                headers: { 'Content-Type': 'application/json' },
-                            }).then(response => response.json())
-                                .then(data2 => console.log(data2))
-                                .catch(error => console.error('Error:', error));
+                        // console.log({ content: content, user_name: content.split("：")[0] })
+                        fetch('http://localhost:8000/chatbot/chat2', {
+                            method: 'POST',
+                            body: JSON.stringify({ content: data, user_name: ""/* content.split("：")[0] */ }),
+                            headers: { 'Content-Type': 'application/json' },
+                        }).then(response => response.json())
+                            .then(data2 => console.log(data2))
+                            .catch(error => console.error('Error:', error));
                         // } catch (error) {
                         //     // 捕获并处理异常
                         //     console.error('自动提问-解析异常: ', data);
@@ -215,7 +216,7 @@ export default function Home() {
         emote: [{ "emote": string, "time": number }],
         expand: string) => {
 
-        console.log("弹幕回复:" + expand)
+        // console.log("弹幕回复:" + expand)
         // 如果content为空，不进行处理
         // 如果与上一句content完全相同，不进行处理
         if (content == null || content == '' || content == ' ') {
@@ -247,11 +248,15 @@ export default function Home() {
 
         // 播放队列
         handleSpeakAi(globalConfig, aiTalks[0], () => {
+            idle_01 && clearTimeout(idle_01);
+
             let myTitle = expand + " \n ";
             if (user_name) {
                 myTitle = user_name + " ： " + expand + " \n ";
             }
             setSubtitle(myTitle);
+
+            handleBehaviorAction("behavior_action", "Happy Idle", emote);
 
             // setAssistantMessage(currentAssistantMessage);
 
@@ -283,6 +288,10 @@ export default function Home() {
         }, () => {
             // 标记消息为已读
             markMessageAsPlayed(sTime);
+
+            idle_01 = setTimeout(() => {
+                handleBehaviorAction("behavior_action", "idle_01", [{ "emote": "neutral", time: -1 }]);
+            }, 2000);
         });
     }, [])
 
@@ -341,8 +350,8 @@ export default function Home() {
 
     }
 
-    const handleBehaviorAction = (type: string, anim: string, emotes: { emote: string, time: number, anim?: string }[]) => {
-        console.log("BehaviorActionMessage:" + anim, " emotes:", emotes)
+    const handleBehaviorAction = (type: string, anim: string, emotes: any[] = []) => {
+        console.log("动作和表情:" + anim, " emotes:", emotes)
         // // 播放动作
         // viewer.model?.loadFBX(buildUrl(anim))
         // 播放表情
@@ -355,7 +364,7 @@ export default function Home() {
                 // 播放表情
                 viewer.model?.emote(emote.emote as EmotionType);
                 // 播放动作
-                viewer.model?.loadFBX(buildUrl(emote.anim ? emote.anim : "idle_01"))
+                viewer.model?.loadFBX(buildUrl(emote.action ? emote.action : "idle_01"))
                 setTimeout(() => {
                     resolve(true);
                 }, emote.time * 1000);
@@ -427,6 +436,7 @@ export default function Home() {
         const data = event.data;
         const chatMessage = JSON.parse(data);
         const type = chatMessage.message.type;
+        console.log("收到消息：", chatMessage)
         if (type === "user") {
             handleUserMessage(
                 webGlobalConfig,

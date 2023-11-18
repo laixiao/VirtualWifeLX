@@ -228,33 +228,32 @@ class GenerationEmote:
         - Author: LAIXIAO
         - Version: 0.1
         - Language: JSON
-        - Description: 情感分析AI可以分析文本中的情感，推测文字所要表达的感情。
+        - Description: 情感分析AI可以分析文本中的情感，推测文字所要表达的感情，然后给出情感变化过程的JSON数据。
 
         ### Skill
         1. 使用情感推理来分析文本中的感情。
         2. 将文中包含的所有情感，分段推理出来。
-        3. 请使用你的推理情感输出。
 
         ## Rules
-        1. emote可能的值只有以下五种类型：表达正常的“neutral”，“happy”表达快乐，“angry”表达愤怒，“sad”表达悲伤，“relaxed”表达平静。
-        2. time代表某段情感转成普通话音频文件的大致时长，单位为秒。
-        3. 如果相邻两段emote相同，则合并成一段输出。
-        4. 请严格以JSON数组格式输出结果，
-        5. 无需解释，不需要输出推理过程，只输出JSON数组。
+        1. emote 可能的值为：表达正常的“neutral”，“happy”表达快乐，“angry”表达愤怒，“sad”表达悲伤，“relaxed”表达平静。
+        2. time 代表某段情感转成普通话音频文件的大致时长，单位为秒。
+        3. action 可能的值为：[ 'relaxed_idle_01', 'Neutral_Idle_1', 'Angry_1', 'Sad_Idle_1', 'idle_happy_1', 'standing_greeting', 'thinking', 'Sitting Idle', 'Dance Snake Hip Hop', 'Dance Thriller Part 2', 'Dancing Hip Hop', 'Standing Arguing' ]
+        3. 如果相邻两段表情和动作相同，则合并成一段输出。
+        4. 请严格以JSON数组格式输出结果，不需要输出推理过程，只输出JSON数组数据。
 
         ## OutputFormat :
-        [{"emote":"你的推理的情绪","time": "文本片段转成普通话音频文件的大致时长"}]
+        [{"emote":"你的推理的情绪","time": "文本片段转成普通话音频文件的大致时长", action:"与情感相符的动作"}]
 
         ## Examples :
         1. 我真的是被你气死了
-        - [{"emote":"angry","time": 3.3}]
+        - [{"emote":"angry","time": 3.3, action:"idle_01" }]
 
         2. 今早吃到我最喜欢的汉堡，我非常很开心，但是中午掉坑里了，就变得非常沮丧。
-        - [{"emote":"angry","time": 6.5},{"emote":"angry","time": 5.2}]
+        - [{"emote":"angry","time": 6.5,"action":"idle_happy_01"},{"emote":"angry","time": 5.2,"action":"Sad_Idle_1"}]
 
         ## Workflow
         1. 分段分析文本中的情感。
-        2. 揣测某段emote文本转成普通话的音频文件时长。
+        2. 揣测某段情感文本转成普通话的音频文件时长。
         3. 输出整个文本中的情感变化。
 
         ## Initialization
@@ -285,10 +284,15 @@ class GenerationEmote:
 
             # json_str = result.split("```")[1].strip()
             # logger.debug(f"=> {self.llm_model_driver_type} 分析的表情： {json_str}")
-            emote = json.loads(result)
+            
+            start = result.find("[")
+            end = result.find("]")
+            json_string = result[start:end+1]
+            
+            emote = json.loads(json_string)
             # emote = json_data["emote"]
             return json.loads(emote)
         except Exception as e:
-            logger.error("GenerationEmote error: %s" % str(e))
+            logger.error("表情分析失败: %s" % str(e))
 
         return emote

@@ -77,7 +77,7 @@ export class Model {
 
   // mixamo animation
   public async loadFBX(animationUrl: string) {
-    const { vrm, mixer, clipMap, blendTime,current_clipMap } = this;
+    const { vrm, mixer, clipMap, blendTime, current_clipMap } = this;
 
     const animationClip = clipMap.get(animationUrl)
     const currentClip = current_clipMap.get("current")
@@ -85,19 +85,19 @@ export class Model {
       throw new Error("You have to load VRM first");
     }
 
+    // console.log(`当前动画：${currentClip?.name} , 下一个动画：${animationClip.name}`)
     if (currentClip != null) {
-
       const currentClipAction = mixer.clipAction(currentClip)
       const animationClipAction = mixer.clipAction(animationClip)
-      this.crossPlay(currentClipAction,animationClipAction)
+      this.crossPlay(currentClipAction, animationClipAction)
     } else {
       mixer.clipAction(animationClip)?.play();
     }
     current_clipMap?.set("current", animationClip)
   }
 
-   // 给动作切换时加一个淡入淡出效果，避免角色抖动
-   public async crossPlay(curAction: THREE.AnimationAction, newAction: THREE.AnimationAction) {
+  // 给动作切换时加一个淡入淡出效果，避免角色抖动
+  public async crossPlay(curAction: THREE.AnimationAction, newAction: THREE.AnimationAction) {
     curAction.fadeOut(1);
     newAction.reset();
     newAction.setEffectiveWeight(1);

@@ -84,9 +84,9 @@ class ProcessCore:
                 self.chat(you_name, query, retry_count + 1)  # 重试，并增加重试计数
             else:
                 error_message = "欢迎新进直播间的朋友"
-                realtime_callback(
-                    role_name=role_name,
-                    you_name=you_name,
+                realtime_callback2(
+                    role_name="",
+                    you_name="",
                     content=error_message,
-                    end_bool=True,
+                    expand=error_message,
                 )

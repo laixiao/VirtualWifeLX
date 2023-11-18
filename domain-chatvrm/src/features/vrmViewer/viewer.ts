@@ -78,12 +78,19 @@ export class Viewer {
       // this.model.clipMap.set("Standing Arguing", await loadMixamoAnimation(buildUrl("daily/Standing Arguing.fbx"), this.model.vrm))
 
       const animations = [
+        { name: "relaxed_idle_01", path: "daily", description: "idle" },
+        { name: "Neutral_Idle_1", path: "daily", description: "idle" },
+        { name: "Angry_1", path: "daily", description: "idle" },
+        { name: "Sad_Idle_1", path: "daily", description: "idle" },
+        { name: "idle_happy_1", path: "daily", description: "idle" },
+
         { name: "idle_01", path: "daily", description: "Basic idle" },
         { name: "idle_02", path: "daily", description: "Alternate idle" },
         { name: "idle_03", path: "daily", description: "Variation of idle" },
         { name: "idle_happy_01", path: "daily", description: "Happy idle 1" },
         { name: "idle_happy_02", path: "daily", description: "Happy idle 2" },
         { name: "idle_happy_03", path: "daily", description: "Happy idle 3" },
+        { name: "idle_happy_01", path: "daily", description: "Happy idle 4" },
         { name: "standing_greeting", path: "daily", description: "Greeting" },
         { name: "thinking", path: "daily", description: "Thinking pose" },
         { name: "Sitting Idle", path: "daily", description: "Sitting idle" },

@@ -32,7 +32,7 @@ class OpenAIGeneration:
                 self.llm = ChatOpenAI(
                     temperature=0.7,
                     model_name="gpt-4",
-                    openai_api_key="sk-laixiao-4",
+                    openai_api_key=OPENAI_API_KEY,
                     openai_api_base=OPENAI_BASE_URL,
                 )
         else:
@@ -103,8 +103,8 @@ class OpenAIGeneration:
         messages.append({"role": "user", "content": query})
         logger.debug(f"2.GPT提问：{messages}")
         response = openai.ChatCompletion.create(
-            # model="gpt-4",
-            model="gpt-3.5-turbo",
+            model="gpt-4",
+            # model="gpt-3.5-turbo",
             messages=messages,
         )
 
