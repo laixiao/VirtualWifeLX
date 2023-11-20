@@ -60,23 +60,6 @@ export class Viewer {
 
       this._scene.add(this.model.vrm.scene);
 
-      // // 加载所有人物动作
-      // this.model.clipMap.set("idle_01", await loadMixamoAnimation(buildUrl("daily/idle_01.fbx"), this.model.vrm))
-      // this.model.clipMap.set("idle_02", await loadMixamoAnimation(buildUrl("daily/idle_02.fbx"), this.model.vrm))
-      // this.model.clipMap.set("idle_03", await loadMixamoAnimation(buildUrl("daily/idle_03.fbx"), this.model.vrm))
-      // this.model.clipMap.set("idle_happy_01", await loadMixamoAnimation(buildUrl("daily/idle_happy_01.fbx"), this.model.vrm))
-      // this.model.clipMap.set("idle_happy_02", await loadMixamoAnimation(buildUrl("daily/idle_happy_02.fbx"), this.model.vrm))
-      // this.model.clipMap.set("idle_happy_03", await loadMixamoAnimation(buildUrl("daily/idle_happy_03.fbx"), this.model.vrm))
-      // this.model.clipMap.set("standing_greeting", await loadMixamoAnimation(buildUrl("daily/standing_greeting.fbx"), this.model.vrm))
-      // this.model.clipMap.set("thinking", await loadMixamoAnimation(buildUrl("daily/thinking.fbx"), this.model.vrm))
-      // this.model.clipMap.set("excited", await loadMixamoAnimation(buildUrl("emote/excited.fbx"), this.model.vrm))
-
-      // this.model.clipMap.set("Sitting Idle", await loadMixamoAnimation(buildUrl("daily/Sitting Idle.fbx"), this.model.vrm))
-      // this.model.clipMap.set("Dance Snake Hip Hop", await loadMixamoAnimation(buildUrl("daily/Dance Snake Hip Hop.fbx"), this.model.vrm))
-      // this.model.clipMap.set("Dance Thriller Part 2", await loadMixamoAnimation(buildUrl("daily/Dance Thriller Part 2.fbx"), this.model.vrm))
-      // this.model.clipMap.set("Dancing Hip Hop", await loadMixamoAnimation(buildUrl("daily/Dancing Hip Hop.fbx"), this.model.vrm))
-      // this.model.clipMap.set("Standing Arguing", await loadMixamoAnimation(buildUrl("daily/Standing Arguing.fbx"), this.model.vrm))
-
       const animations = [
         { name: "relaxed_idle_01", path: "daily", description: "idle" },
         { name: "Neutral_Idle_1", path: "daily", description: "idle" },
@@ -93,7 +76,6 @@ export class Viewer {
         { name: "idle_happy_01", path: "daily", description: "Happy idle 4" },
         { name: "standing_greeting", path: "daily", description: "Greeting" },
         { name: "thinking", path: "daily", description: "Thinking pose" },
-        { name: "Sitting Idle", path: "daily", description: "Sitting idle" },
         { name: "Dance Snake Hip Hop", path: "daily", description: "Snake dance" },
         { name: "Dance Thriller Part 2", path: "daily", description: "Thriller dance" },
         { name: "Dancing Hip Hop", path: "daily", description: "Hip hop dance" },

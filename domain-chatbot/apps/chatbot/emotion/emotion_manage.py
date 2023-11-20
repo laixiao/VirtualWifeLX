@@ -237,9 +237,10 @@ class GenerationEmote:
         ## Rules
         1. emote 可能的值为：表达正常的“neutral”，“happy”表达快乐，“angry”表达愤怒，“sad”表达悲伤，“relaxed”表达平静。
         2. time 代表某段情感转成普通话音频文件的大致时长，单位为秒。
-        3. action 可能的值为：[ 'relaxed_idle_01', 'Neutral_Idle_1', 'Angry_1', 'Sad_Idle_1', 'idle_happy_1', 'standing_greeting', 'thinking', 'Sitting Idle', 'Dance Snake Hip Hop', 'Dance Thriller Part 2', 'Dancing Hip Hop', 'Standing Arguing' ]
-        3. 如果相邻两段表情和动作相同，则合并成一段输出。
-        4. 请严格以JSON数组格式输出结果，不需要输出推理过程，只输出JSON数组数据。
+        3. action 可能的值为：[ 'relaxed_idle_01', 'Neutral_Idle_1', 'Angry_1', 'Sad_Idle_1', 'idle_happy_1', 'standing_greeting', 'thinking', 'Dance Snake Hip Hop', 'Dance Thriller Part 2', 'Dancing Hip Hop', 'Standing Arguing' ]
+        4. 如果出现语境中出现跳舞需求，则可以挑选Dance开头的跳舞动作。
+        5. 如果相邻两段表情和动作相同，则合并成一段输出，所有字段都不能为null。
+        6. 请严格以JSON数组格式输出结果，不需要输出推理过程，只输出JSON数组数据。
 
         ## OutputFormat :
         [{"emote":"你的推理的情绪","time": "文本片段转成普通话音频文件的大致时长", action:"与情感相符的动作"}]

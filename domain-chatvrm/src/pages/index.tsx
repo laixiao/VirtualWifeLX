@@ -360,7 +360,7 @@ export default function Home() {
         const actions: (() => Promise<boolean>)[] = [];
         for (const emote of emotes) {
             actions.push(() => new Promise((resolve, reject) => {
-                console.log(emote)
+                // console.log(emote)
                 // 播放表情
                 viewer.model?.emote(emote.emote as EmotionType);
                 // 播放动作
@@ -470,7 +470,7 @@ export default function Home() {
                 setupWebSocket(); // 重新调用connect()函数进行连接
             };
         });
-
+        // 测试
         // let elist = [
         //     { "emote": VRMExpressionPresetName.Aa, "time": 5, anim: "idle_01" },
         //     { "emote": VRMExpressionPresetName.Ih, "time": 4, anim: "idle_02" },
@@ -480,7 +480,6 @@ export default function Home() {
         //     { "emote": VRMExpressionPresetName.Blink, "time": 5, anim: "idle_happy_03" },
         //     { "emote": VRMExpressionPresetName.Happy, "time": 2, anim: "standing_greeting" },
         //     { "emote": VRMExpressionPresetName.Angry, "time": 4, anim: "thinking" },
-        //     { "emote": VRMExpressionPresetName.Sad, "time": 3, anim: "Sitting Idle" },
         //     { "emote": VRMExpressionPresetName.Relaxed, "time": 4, anim: "Dance Snake Hip Hop" },
         //     { "emote": VRMExpressionPresetName.LookUp, "time": 4, anim: "Dance Thriller Part 2" },
         //     { "emote": VRMExpressionPresetName.Surprised, "time": 2, anim: "Dancing Hip Hop" },
