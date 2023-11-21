@@ -38,7 +38,7 @@ let webGlobalConfig = initialFormData
 let roleList: any = null;
 let curRole: any = null;
 let autoQuestion: string | number | NodeJS.Timeout | null | undefined = null;
-let idle_01: string | number | NodeJS.Timeout | null | undefined = null;
+let defaultAnim: string | number | NodeJS.Timeout | null | undefined = null;
 
 export default function Home() {
     const { viewer } = useContext(ViewerContext);
@@ -248,7 +248,7 @@ export default function Home() {
 
         // 播放队列
         handleSpeakAi(globalConfig, aiTalks[0], () => {
-            idle_01 && clearTimeout(idle_01);
+            defaultAnim && clearTimeout(defaultAnim);
 
             let myTitle = expand + " \n ";
             if (user_name) {
@@ -289,7 +289,7 @@ export default function Home() {
             // 标记消息为已读
             markMessageAsPlayed(sTime);
 
-            idle_01 = setTimeout(() => {
+            defaultAnim = setTimeout(() => {
                 handleBehaviorAction("behavior_action", "idle_01", [{ "emote": "neutral", time: -1 }]);
             }, 2000);
         });

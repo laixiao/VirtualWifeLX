@@ -80,6 +80,8 @@ export class Viewer {
         { name: "Dance Thriller Part 2", path: "daily", description: "Thriller dance" },
         { name: "Dancing Hip Hop", path: "daily", description: "Hip hop dance" },
         { name: "Standing Arguing", path: "daily", description: "Arguing" },
+
+        { name: "CatwalkWalk", path: "daily", description: "CatwalkWalk" },
         
         { name: "excited", path: "emote", description: "Excited" },
       ];
@@ -95,7 +97,7 @@ export class Viewer {
 
       // const vrma = await loadVRMAnimation(buildUrl("/idle_loop.vrma"));
       // if (vrma) this.model.loadAnimation(vrma);
-      this.model.loadFBX("idle_01")
+      this.model.loadFBX("CatwalkWalk")
 
       // HACK: アニメーションの原点がずれているので再生後にカメラ位置を調整する
       requestAnimationFrame(() => {
