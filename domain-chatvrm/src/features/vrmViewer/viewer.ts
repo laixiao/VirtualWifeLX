@@ -61,29 +61,37 @@ export class Viewer {
       this._scene.add(this.model.vrm.scene);
 
       const animations = [
-        { name: "relaxed_idle_01", path: "daily", description: "idle" },
-        { name: "Neutral_Idle_1", path: "daily", description: "idle" },
-        { name: "Angry_1", path: "daily", description: "idle" },
-        { name: "Sad_Idle_1", path: "daily", description: "idle" },
-        { name: "idle_happy_1", path: "daily", description: "idle" },
-
+        // { name: "relaxed_idle_01", path: "daily", description: "idle" },
+        // { name: "Neutral_Idle_1", path: "daily", description: "idle" },
+        // { name: "Angry_1", path: "daily", description: "idle" },
+        // { name: "Sad_Idle_1", path: "daily", description: "idle" },
+        // { name: "idle_happy_1", path: "daily", description: "idle" },
+        
         { name: "idle_01", path: "daily", description: "Basic idle" },
         { name: "idle_02", path: "daily", description: "Alternate idle" },
         { name: "idle_03", path: "daily", description: "Variation of idle" },
-        { name: "idle_happy_01", path: "daily", description: "Happy idle 1" },
-        { name: "idle_happy_02", path: "daily", description: "Happy idle 2" },
-        { name: "idle_happy_03", path: "daily", description: "Happy idle 3" },
-        { name: "idle_happy_01", path: "daily", description: "Happy idle 4" },
-        { name: "standing_greeting", path: "daily", description: "Greeting" },
-        { name: "thinking", path: "daily", description: "Thinking pose" },
-        { name: "Dance Snake Hip Hop", path: "daily", description: "Snake dance" },
-        { name: "Dance Thriller Part 2", path: "daily", description: "Thriller dance" },
-        { name: "Dancing Hip Hop", path: "daily", description: "Hip hop dance" },
-        { name: "Standing Arguing", path: "daily", description: "Arguing" },
+
+        { name: "Talking1", path: "daily", description: "Talking" },
+        { name: "Talking2", path: "daily", description: "Talking" },
+        { name: "Talking3", path: "daily", description: "Talking" },
+        { name: "Talking4", path: "daily", description: "Talking" },
+        { name: "Talking5", path: "daily", description: "Talking" },
+        
+        // { name: "idle_happy_01", path: "daily", description: "Happy idle 1" },
+        // { name: "idle_happy_02", path: "daily", description: "Happy idle 2" },
+        // { name: "idle_happy_03", path: "daily", description: "Happy idle 3" },
+        // { name: "idle_happy_04", path: "daily", description: "Happy idle 4" },
+
+        // { name: "standing_greeting", path: "daily", description: "Greeting" },
+        // { name: "thinking", path: "daily", description: "Thinking pose" },
+        // { name: "Dance Snake Hip Hop", path: "daily", description: "Snake dance" },
+        // { name: "Dance Thriller Part 2", path: "daily", description: "Thriller dance" },
+        // { name: "Dancing Hip Hop", path: "daily", description: "Hip hop dance" },
+        // { name: "Standing Arguing", path: "daily", description: "Arguing" },
 
         { name: "CatwalkWalk", path: "daily", description: "CatwalkWalk" },
-        
-        { name: "excited", path: "emote", description: "Excited" },
+
+        // { name: "excited", path: "emote", description: "Excited" },
       ];
       let loadAnimation = async (animation: { name: string; path: string; description?: string }) => {
         if (this.model && this.model.vrm) {
@@ -97,7 +105,7 @@ export class Viewer {
 
       // const vrma = await loadVRMAnimation(buildUrl("/idle_loop.vrma"));
       // if (vrma) this.model.loadAnimation(vrma);
-      this.model.loadFBX("CatwalkWalk")
+      this.model.loadFBX("idle_01")
 
       // HACK: アニメーションの原点がずれているので再生後にカメラ位置を調整する
       requestAnimationFrame(() => {

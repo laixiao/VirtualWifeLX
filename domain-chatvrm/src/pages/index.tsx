@@ -19,6 +19,7 @@ import { buildUrl } from "@/utils/buildUrl";
 import { generateMediaUrl, vrmModelData } from "@/features/media/mediaApi";
 import { VRMExpressionPresetName } from "@pixiv/three-vrm";
 import { custoRoleFormData, customroleList } from "@/features/customRole/customRoleApi";
+import { playAnim } from "@/utils/ExpressionUtil";
 
 // const m_plus_2 = M_PLUS_2({
 //   variable: "--font-m-plus-2",
@@ -186,8 +187,7 @@ export default function Home() {
                     setSubtitle(quationStr);
                     handleEmotes(msg.emote);
 
-                    // console.log("播放动作:", anim)
-                    // viewer.model?.loadFBX(buildUrl(anim))
+                    playAnim(viewer, "talk")
                 }, () => {
                     speaking = false;
                     popMsg(webGlobalConfig);
@@ -196,7 +196,8 @@ export default function Home() {
         } else {
             if (!speaking) {
                 console.log("完成播放")
-                handleEmotes([{ "emote": "neutral", time: -1, action: "idle_01" }]);
+                handleEmotes([{ "emote": "neutral", time: -1 }]);
+                playAnim(viewer, "idle")
             }
         }
 
@@ -205,7 +206,7 @@ export default function Home() {
     const handleEmotes = (emotes: any[] = []) => {
         console.log("播放表情:", emotes)
         const emoteArry: Promise<any>[] = [];
-        let emoteOnce = (emote: { emote: string; action: string; time: number; }) => {
+        let emoteOnce = (emote: { emote: string; time: number; }) => {
             return new Promise((resolve, reject) => {
                 // 播放表情
                 viewer.model?.emote(emote.emote as EmotionType);
@@ -249,7 +250,7 @@ export default function Home() {
     //     setChatProcessing(true);
 
     //     console.log("动作：思考1")
-    //     handleEmotes([{ "emote": "happy", time: -1, action: "thinking" }]);
+    //     handleEmotes([{ "emote": "happy", time: -1 }]);
 
     //     await chat(content, yourName).catch(
     //         (e) => {
@@ -259,7 +260,7 @@ export default function Home() {
     //     );
 
     //     console.log("动作：说完话1")
-    //     handleEmotes([{ "emote": "neutral", time: -1, action: "idle_01" }]);
+    //     handleEmotes([{ "emote": "neutral", time: -1 }]);
 
     //     setChatProcessing(false);
     // }, [systemPrompt, setImageUrl, openAiKey, koeiroParam]);
