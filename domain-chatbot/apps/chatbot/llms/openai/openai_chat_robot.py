@@ -71,8 +71,8 @@ class OpenAIGeneration:
         messages.append({"role": "user", "content": PROMPT.format(info=prompt + query)})
         logger.debug(f"1.GPT提问：{messages}")
         response = openai.ChatCompletion.create(
-            model="gpt-4",
-            # model="gpt-3.5-turbo",
+            # model="gpt-4",
+            model="gpt-3.5-turbo",
             messages=messages,
         )
         answer = response["choices"][0]["message"]["content"]
@@ -103,8 +103,8 @@ class OpenAIGeneration:
         messages.append({"role": "user", "content": query})
         logger.debug(f"2.GPT提问：{messages}")
         response = openai.ChatCompletion.create(
-            model="gpt-4",
-            # model="gpt-3.5-turbo",
+            # model="gpt-4",
+            model="gpt-3.5-turbo",
             messages=messages,
         )
 

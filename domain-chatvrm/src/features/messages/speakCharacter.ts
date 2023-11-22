@@ -13,15 +13,9 @@ const createSpeakCharacter = () => {
   let prevFetchPromise: Promise<unknown> = Promise.resolve();
   let prevSpeakPromise: Promise<unknown> = Promise.resolve();
 
-  return (
-    globalConfig: GlobalConfig,
-    screenplay: Screenplay,
-    viewer: Viewer,
-    onStart?: () => void,
-    onComplete?: () => void
-  ) => {
+  return (globalConfig: GlobalConfig, text: string, viewer: Viewer, onStart?: () => void, onComplete?: () => void) => {
     // 没有中英文则直接返回
-    if (screenplay.talk.message.replace(/[^a-zA-Z\u4e00-\u9fa5]/g, '').trim().length <= 0) {
+    if (text.replace(/[^a-zA-Z\u4e00-\u9fa5]/g, '').trim().length <= 0) {
       onComplete?.();
       return;
     }
@@ -32,7 +26,7 @@ const createSpeakCharacter = () => {
         await wait(1000 - (now - lastTime));
       }
 
-      const buffer = await fetchAudio(screenplay.talk, globalConfig).catch(() => null);
+      const buffer = await fetchAudio(text, globalConfig).catch(() => null);
       lastTime = Date.now();
       return buffer;
     });
@@ -44,7 +38,7 @@ const createSpeakCharacter = () => {
         if (!audioBuffer) {
           return;
         }
-        return viewer.model?.speak(audioBuffer, screenplay);
+        return viewer.model?.speak(audioBuffer);
       }).catch(e => {
         onComplete?.();
       })
@@ -56,7 +50,7 @@ const createSpeakCharacter = () => {
 
 export const speakCharacter = createSpeakCharacter();
 
-export const fetchAudio = async (talk: Talk, globalConfig: GlobalConfig): Promise<ArrayBuffer> => {
+export const fetchAudio = async (text: string, globalConfig: GlobalConfig): Promise<ArrayBuffer> => {
   // const ttsVoice = await synthesizeVoice(
   //   talk.message,
   //   talk.speakerX,
@@ -73,7 +67,7 @@ export const fetchAudio = async (talk: Talk, globalConfig: GlobalConfig): Promis
   // return buffer;
 
   const requestBody = {
-    text: talk.message,
+    text: text,
     voice_id: globalConfig.ttsConfig.ttsVoiceId,
     type: globalConfig.ttsConfig.ttsType
   };

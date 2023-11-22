@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import dataclasses
 import json
+import pprint
 from typing import *
 
 __all__ = (
@@ -110,6 +111,8 @@ class DanmakuMessage:
 
     @classmethod
     def from_command(cls, info: dict):
+        print("=====接收弹幕消息=====")
+        pprint(info)
         if len(info[3]) != 0:
             medal_level = info[3][0]
             medal_name = info[3][1]

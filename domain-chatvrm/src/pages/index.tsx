@@ -37,8 +37,9 @@ let bind_message_event = false;
 let webGlobalConfig = initialFormData
 let roleList: any = null;
 let curRole: any = null;
-let autoQuestion: string | number | NodeJS.Timeout | null | undefined = null;
-let defaultAnim: string | number | NodeJS.Timeout | null | undefined = null;
+let autoInterval: string | number | NodeJS.Timeout | null | undefined = null;
+let msgList: any[] = [];
+let speaking: boolean = false;
 
 export default function Home() {
     const { viewer } = useContext(ViewerContext);
@@ -47,8 +48,6 @@ export default function Home() {
     const [koeiroParam, setKoeiroParam] = useState<KoeiroParam>(DEFAULT_PARAM);
     const [chatProcessing, setChatProcessing] = useState(false);
     const [customRoles, setCustomRoles] = useState([custoRoleFormData]);
-    const [chatLog, setChatLog] = useState<Message[]>([]);
-    const [chatList, setChatList] = useState<Message[]>([]);
     const [assistantMessage, setAssistantMessage] = useState("");
     const [imageUrl, setImageUrl] = useState('');
     const [globalConfig, setGlobalConfig] = useState<GlobalConfig>(initialFormData);
@@ -73,19 +72,17 @@ export default function Home() {
 
     // ============自动提问=============
     const aiAsk = () => {
-        if (autoQuestion) {
-            clearInterval(autoQuestion)
+        if (autoInterval) {
+            clearInterval(autoInterval)
         }
         if (curRole && curRole.scenario && curRole.scenario.length > 0) {
             let messages: Message[] = [];
             let sysMsg: Message = { role: "user", content: `${curRole.scenario}`, user_name: "user" };
-            console.log("自动提问-提示词-user：")
-            console.log(curRole.scenario)
-            autoQuestion = setInterval(() => {
-                const params2 = JSON.parse(window.localStorage.getItem("chatVRMParams") as string);
-                let indexPos = params2.chatList.findIndex((item: { played: boolean; }) => item.played == false);
-                if (indexPos == -1 || params2.chatList.length - indexPos < 3) {
-                    console.log("===>15s自动提问，列表长度： ", params2.chatList.length, " 当前播放：" + indexPos, " 剩余未播放：" + (params2.chatList.length - indexPos))
+            console.log("自动提问-提示词-user：", curRole.scenario)
+
+            autoInterval = setInterval(() => {
+                if (msgList.length < 5) {
+                    console.log("===>15s自动提问，列表剩余长度： ", msgList.length)
 
                     getChatResponse(messages.concat([sysMsg]).reverse()).then((data) => {
                         // try {
@@ -97,7 +94,6 @@ export default function Home() {
                         }
                         messages.push({ role: "assistant", content: data, user_name: "assistant" })
 
-                        // console.log({ content: content, user_name: content.split("：")[0] })
                         fetch('http://localhost:8000/chatbot/chat2', {
                             method: 'POST',
                             body: JSON.stringify({ content: data, user_name: ""/* content.split("：")[0] */ }),
@@ -109,11 +105,12 @@ export default function Home() {
                         //     // 捕获并处理异常
                         //     console.error('自动提问-解析异常: ', data);
                         // }
+
                     }).catch((e) => {
                         console.error(e);
                     });
                 } else {
-                    console.log("已有多个待回复内容", params2.chatList.length, " 当前播放：" + indexPos, " 剩余未播放：" + (params2.chatList.length - indexPos))
+                    console.log("列表剩余长度：", msgList.length)
                 }
             }, 1000 * 15);
         }
@@ -150,17 +147,6 @@ export default function Home() {
             );
             setSystemPrompt(params.systemPrompt);
             setKoeiroParam(params.koeiroParam);
-            setChatLog(params.chatLog);
-
-            params.chatList.map((item: { played: boolean; }) => item.played = true)
-            window.localStorage.setItem(
-                "chatVRMParams",
-                JSON.stringify({ systemPrompt, koeiroParam, chatLog, chatList })
-            )
-
-            setChatList(params.chatList);
-
-
         }
 
     }, []);
@@ -170,196 +156,58 @@ export default function Home() {
         process.nextTick(() =>
             window.localStorage.setItem(
                 "chatVRMParams",
-                JSON.stringify({ systemPrompt, koeiroParam, chatLog, chatList })
+                JSON.stringify({ systemPrompt, koeiroParam })
             )
         );
-    }, [systemPrompt, koeiroParam, chatLog, chatList]);
+    }, [systemPrompt, koeiroParam]);
 
-    const handleChangeChatLog = useCallback(
-        (targetIndex: number, text: string) => {
-            const newChatLog = chatLog.map((v: Message, i) => {
-                return i === targetIndex ? { role: v.role, content: text, user_name: v.user_name } : v;
-            });
-            setChatLog(newChatLog);
-        },
-        [chatLog]
-    );
 
-    /**
-     * 每句话串行点播声音并播放
-     */
-    const handleSpeakAi = useCallback(
-        async (
-            globalConfig: GlobalConfig,
-            screenplay: Screenplay,
-            onStart?: () => void,
-            onEnd?: () => void
-        ) => {
-            speakCharacter(globalConfig, screenplay, viewer, onStart, onEnd);
-        },
-        [viewer]
-    );
+    const handleUserMessage = useCallback((globalConfig: GlobalConfig) => {
+        if (msgList.length > 0) {
+            if (!speaking) {
+                speaking = true;
+                let msg = msgList.shift();
+                console.log("2.播放消息：", msg)
 
-    const markMessageAsPlayed = useCallback((timeStamp: number | undefined) => {
-        setChatList(prevChatList =>
-            prevChatList.map(item =>
-                item.time === timeStamp ? { ...item, played: true } : item
-            )
-        );
-    }, [setChatList]);
+                // const sentences = new Array<string>();
+                // let aiTextLog = "";
 
-    const handleUserMessage = useCallback((
-        globalConfig: GlobalConfig,
-        type: string,
-        user_name: string,
-        content: string,
-        emote: [{ "emote": string, "time": number }],
-        expand: string) => {
+                let quationStr = msg.expand + " \n ";
+                if (msg.user_name) {
+                    quationStr = msg.user_name + " ： " + msg.expand + " \n ";
+                }
+                // 生成并播放每个句子的声音，显示回答
+                // const currentAssistantMessage = sentences.join(" ");
+                // setSubtitle(aiTextLog);
 
-        // console.log("弹幕回复:" + expand)
-        // 如果content为空，不进行处理
-        // 如果与上一句content完全相同，不进行处理
-        if (content == null || content == '' || content == ' ') {
-            return
-        }
-
-        // const sentences = new Array<string>();
-        let aiTextLog = "";
-        let aiText = expand + " \n " + content;
-        if (user_name) {
-            aiText = user_name + " ： " + expand + " \n " + content;
-        }
-
-        const aiTalks = textsToScreenplay([aiText], koeiroParam, emote[0].emote);
-        aiTextLog += aiText;
-
-        // 回复队列
-        const params = JSON.parse(window.localStorage.getItem("chatVRMParams") as string);
-        if (!params.chatList) {
-            params["chatList"] = [];
-        }
-        let sTime = new Date().getTime();
-        const chatListMsgs: Message[] = [...params.chatList, { type, user_name, content, emote, expand, time: sTime, played: false }];
-        setChatList(chatListMsgs);
-
-        // 生成并播放每个句子的声音，显示回答
-        // const currentAssistantMessage = sentences.join(" ");
-        // setSubtitle(aiTextLog);
-
-        // 播放队列
-        handleSpeakAi(globalConfig, aiTalks[0], () => {
-            defaultAnim && clearTimeout(defaultAnim);
-
-            let myTitle = expand + " \n ";
-            if (user_name) {
-                myTitle = user_name + " ： " + expand + " \n ";
+                // 播放队列
+                speakCharacter(globalConfig, quationStr + msg.content, viewer, () => {
+                    setSubtitle(quationStr);
+                    handleBehaviorAction(msg.emote);
+                }, () => {
+                    speaking = false;
+                    handleUserMessage(webGlobalConfig);
+                });
             }
-            setSubtitle(myTitle);
-
-            handleBehaviorAction("behavior_action", "Happy Idle", emote);
-
-            // setAssistantMessage(currentAssistantMessage);
-
-            // handleSubtitle(aiText + " "); // 添加空格以区分不同的字幕
-            // startTypewriterEffect(aiTextLog);
-
-            // // 在日志中添加助手的回复
-            // const params = JSON.parse(window.localStorage.getItem("chatVRMParams") as string);
-            // const messageLogAssistant: Message[] = [...params.chatLog, { role: "assistant", content: aiTextLog, "user_name": user_name },];
-            // setChatLog(messageLogAssistant);
-
-            // // 滑到当前消息处
-            // let indexPos = params.chatList.findIndex((item: any, index: number) => {
-            //     if (item.time == sTime) {
-            //         // params.chatList[index].played = true;
-            //         return true;
-            //     } else {
-            //         return false;
-            //     }
-            // });
-            // window.localStorage.setItem(
-            //     "chatVRMParams",
-            //     JSON.stringify({ systemPrompt, koeiroParam, chatLog, chatList: params.chatList })
-            // )
-            // if (indexPos != -1) {
-            //     (chatListRef.current as any)?.scrollToMessage(indexPos);
-            // }
-
-        }, () => {
-            // 标记消息为已读
-            markMessageAsPlayed(sTime);
-
-            defaultAnim = setTimeout(() => {
-                handleBehaviorAction("behavior_action", "idle_01", [{ "emote": "neutral", time: -1 }]);
-            }, 2000);
-        });
-    }, [])
-
-    const handleDanmakuMessage = (
-        globalConfig: GlobalConfig,
-        type: string,
-        user_name: string,
-        content: string,
-        emote: [{ "emote": string, "time": number }],
-        action: string) => {
-
-        console.log("弹幕消息提问:" + content + " emote:", emote, " user_name:" + user_name)
-        // 如果content为空，不进行处理
-        // 如果与上一句content完全相同，不进行处理
-        if (content == null || content == '' || content == ' ') {
-            return
+        } else {
+            if (!speaking) {
+                console.log("完成播放")
+                handleBehaviorAction([{ "emote": "neutral", time: -1, action: "idle_01" }]);
+            }
         }
 
-        if (action != null && action != '') {
-            console.log("动作：思考2")
-            handleBehaviorAction("behavior_action", action, emote,);
-        }
+    }, [viewer])
 
-        // let aiTextLog = "";
-        // const sentences = new Array<string>();
-        // const aiText = content;
-        // const aiTalks = textsToScreenplay([aiText], koeiroParam, emote);
-        // aiTextLog += aiText;
-        // // 生成并播放每个句子的声音，显示回答
-        // setSubtitle(aiTextLog);
-
-        // handleSpeakAi(globalConfig, aiTalks[0], () => {
-        //     // setAssistantMessage(currentAssistantMessage);
-        //     startTypewriterEffect(aiTextLog);
-        //     // 在日志中添加助手的回复
-        //     const params = JSON.parse(
-        //         window.localStorage.getItem("chatVRMParams") as string
-        //     );
-        //     const messageLog: Message[] = [
-        //         ...params.chatLog,
-        //         { role: "user", content: content, "user_name": user_name },
-        //     ];
-        //     setChatLog(messageLog);
-
-        // }, () => {
-        //     console.log("动作：说完话2")
-        //     if (action != null && action != '') {
-        //         handleBehaviorAction(
-        //             "behavior_action",
-        //             "idle_01",
-        //             "neutral",
-        //         );
-        //     }
-        // });
-
-
-    }
-
-    const handleBehaviorAction = (type: string, anim: string, emotes: any[] = []) => {
-        console.log("动作和表情:" + anim, " emotes:", emotes)
-        // // 播放动作
+    const handleBehaviorAction = (emotes: any[] = []) => {
+        console.log("动作和表情:", emotes)
+        // 播放动作
         // viewer.model?.loadFBX(buildUrl(anim))
         // 播放表情
         // viewer.model?.emote(emote[0].emote as EmotionType)
 
-        const actions: (() => Promise<boolean>)[] = [];
-        for (const emote of emotes) {
-            actions.push(() => new Promise((resolve, reject) => {
+        const actionArry: Promise<any>[] = [];
+        let actionOnce = (emote: { emote: string; action: string; time: number; }) => {
+            return new Promise((resolve, reject) => {
                 // console.log(emote)
                 // 播放表情
                 viewer.model?.emote(emote.emote as EmotionType);
@@ -367,20 +215,23 @@ export default function Home() {
                 viewer.model?.loadFBX(buildUrl(emote.action ? emote.action : "idle_01"))
                 setTimeout(() => {
                     resolve(true);
-                }, emote.time * 1000);
-            }));
+                }, emote.time > 0 ? emote.time * 1000 : 0);
+            })
         }
-        async function runActionsSequentially() {
-            for (const action of actions) {
-                await action();
+        for (const emote of emotes) {
+            actionArry.push(actionOnce(emote));
+        }
+        let excuseAction = () => {
+            if (actionArry.length > 0) {
+                actionArry.shift()?.then(() => {
+                    excuseAction();
+                })
+            } else {
+                // console.log('表情动作播放完成');
             }
         }
-        runActionsSequentially().then(() => {
-            console.log('表情动作播放完成');
-        }).catch(error => {
-            console.error('表情动作播放错误:', error);
-        });
 
+        excuseAction();
     }
 
     const startTypewriterEffect = (text: string) => {
@@ -396,20 +247,13 @@ export default function Home() {
     };
 
     const handleSendChat = useCallback(async (globalConfig: GlobalConfig, type: string, user_name: string, content: string) => {
-        console.log("1.键盘输入消息 UserMessage:" + content)
+        const yourName = user_name == null || user_name == '' ? globalConfig?.characterConfig?.yourName : user_name
+        console.log("1.键盘输入消息 UserMessage:", yourName, content)
 
         setChatProcessing(true);
 
         console.log("动作：思考1")
-        handleBehaviorAction("behavior_action", "thinking", [{ "emote": "happy", time: -1 }],);
-
-        const yourName = user_name == null || user_name == '' ? globalConfig?.characterConfig?.yourName : user_name
-        // 添加用户的发言并显示
-        const messageLog: Message[] = [
-            ...chatLog,
-            { role: "user", content: content, "user_name": yourName },
-        ];
-        setChatLog(messageLog);
+        handleBehaviorAction([{ "emote": "happy", time: -1, action: "thinking" }]);
 
         await chat(content, yourName).catch(
             (e) => {
@@ -419,10 +263,10 @@ export default function Home() {
         );
 
         console.log("动作：说完话1")
-        handleBehaviorAction("behavior_action", "idle_01", [{ "emote": "neutral", time: -1 }],);
+        handleBehaviorAction([{ "emote": "neutral", time: -1, action: "idle_01" }]);
 
         setChatProcessing(false);
-    }, [systemPrompt, chatLog, setChatLog, handleSpeakAi, setImageUrl, openAiKey, koeiroParam]);
+    }, [systemPrompt, setImageUrl, openAiKey, koeiroParam]);
 
     let lastSwitchTime = 0;
 
@@ -436,27 +280,22 @@ export default function Home() {
         const data = event.data;
         const chatMessage = JSON.parse(data);
         const type = chatMessage.message.type;
-        console.log("收到消息：", chatMessage)
+        console.log("1.收到消息：", chatMessage)
+
         if (type === "user") {
-            handleUserMessage(
-                webGlobalConfig,
-                chatMessage.message.type,
-                chatMessage.message.user_name,
-                chatMessage.message.content,
-                chatMessage.message.emote,
-                chatMessage.message.expand,
-            );
+            // 回复弹幕
+            if ((chatMessage.message.content as string).trim()) {
+                msgList.push(chatMessage.message);
+            }
+            handleUserMessage(webGlobalConfig);
         } else if (type === "behavior_action") {
-            handleBehaviorAction(chatMessage.message.type, chatMessage.message.content, chatMessage.message.emote,);
+            handleBehaviorAction(chatMessage.message.emote);
         } else if (type === "danmaku") {
-            handleDanmakuMessage(
-                webGlobalConfig,
-                chatMessage.message.type,
-                chatMessage.message.user_name,
-                chatMessage.message.content,
-                chatMessage.message.emote,
-                chatMessage.message.action
-            );
+            // // 弹幕提问
+            // if ((chatMessage.message.content as string).trim()) {
+            //     msgList.push(chatMessage.message);
+            // }
+            // handleUserMessage(webGlobalConfig);
         }
     };
 
@@ -563,8 +402,8 @@ export default function Home() {
                     globalConfig={globalConfig}
                     openAiKey={openAiKey}
                     systemPrompt={systemPrompt}
-                    chatLog={chatLog}
-                    chatList={chatList}
+                    chatLog={[]}
+                    chatList={[]}
                     chatListRef={chatListRef}
                     koeiroParam={koeiroParam}
                     assistantMessage={assistantMessage}
@@ -573,10 +412,10 @@ export default function Home() {
                         setBackgroundImageUrl(generateMediaUrl(data))
                     }
                     onChangeSystemPrompt={setSystemPrompt}
-                    onChangeChatLog={handleChangeChatLog}
+                    onChangeChatLog={() => { }}
                     onChangeKoeiromapParam={setKoeiroParam}
                     onChangeGlobalConfig={onChangeGlobalConfig}
-                    handleClickResetChatLog={() => setChatLog([])}
+                    handleClickResetChatLog={() => { }}
                     handleClickResetSystemPrompt={() => setSystemPrompt(SYSTEM_PROMPT)}
                 />
                 <GitHubLink />
