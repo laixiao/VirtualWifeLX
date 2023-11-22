@@ -162,7 +162,7 @@ export default function Home() {
     }, [systemPrompt, koeiroParam]);
 
 
-    const handleUserMessage = useCallback((globalConfig: GlobalConfig) => {
+    const popMsg = useCallback((globalConfig: GlobalConfig) => {
         if (msgList.length > 0) {
             if (!speaking) {
                 speaking = true;
@@ -182,56 +182,51 @@ export default function Home() {
 
                 // 播放队列
                 speakCharacter(globalConfig, quationStr + msg.content, viewer, () => {
+                    // 开始播放
                     setSubtitle(quationStr);
-                    handleBehaviorAction(msg.emote);
+                    handleEmotes(msg.emote);
+
+                    // console.log("播放动作:", anim)
+                    // viewer.model?.loadFBX(buildUrl(anim))
                 }, () => {
                     speaking = false;
-                    handleUserMessage(webGlobalConfig);
+                    popMsg(webGlobalConfig);
                 });
             }
         } else {
             if (!speaking) {
                 console.log("完成播放")
-                handleBehaviorAction([{ "emote": "neutral", time: -1, action: "idle_01" }]);
+                handleEmotes([{ "emote": "neutral", time: -1, action: "idle_01" }]);
             }
         }
 
     }, [viewer])
 
-    const handleBehaviorAction = (emotes: any[] = []) => {
-        console.log("动作和表情:", emotes)
-        // 播放动作
-        // viewer.model?.loadFBX(buildUrl(anim))
-        // 播放表情
-        // viewer.model?.emote(emote[0].emote as EmotionType)
-
-        const actionArry: Promise<any>[] = [];
-        let actionOnce = (emote: { emote: string; action: string; time: number; }) => {
+    const handleEmotes = (emotes: any[] = []) => {
+        console.log("播放表情:", emotes)
+        const emoteArry: Promise<any>[] = [];
+        let emoteOnce = (emote: { emote: string; action: string; time: number; }) => {
             return new Promise((resolve, reject) => {
-                // console.log(emote)
                 // 播放表情
                 viewer.model?.emote(emote.emote as EmotionType);
-                // 播放动作
-                viewer.model?.loadFBX(buildUrl(emote.action ? emote.action : "idle_01"))
                 setTimeout(() => {
                     resolve(true);
                 }, emote.time > 0 ? emote.time * 1000 : 0);
             })
         }
         for (const emote of emotes) {
-            actionArry.push(actionOnce(emote));
+            emoteArry.push(emoteOnce(emote));
         }
-        let excuseAction = () => {
-            if (actionArry.length > 0) {
-                actionArry.shift()?.then(() => {
-                    excuseAction();
+        let excuseTask = () => {
+            if (emoteArry.length > 0) {
+                emoteArry.shift()?.then(() => {
+                    excuseTask();
                 })
             } else {
-                // console.log('表情动作播放完成');
+                console.log('表情播放完成');
             }
         }
-
-        excuseAction();
+        excuseTask();
     }
 
     const startTypewriterEffect = (text: string) => {
@@ -246,27 +241,28 @@ export default function Home() {
         }, 100); // 每个字符的间隔时间
     };
 
-    const handleSendChat = useCallback(async (globalConfig: GlobalConfig, type: string, user_name: string, content: string) => {
-        const yourName = user_name == null || user_name == '' ? globalConfig?.characterConfig?.yourName : user_name
-        console.log("1.键盘输入消息 UserMessage:", yourName, content)
+    // 键盘输入
+    // const handleSendChat = useCallback(async (globalConfig: GlobalConfig, type: string, user_name: string, content: string) => {
+    //     const yourName = user_name == null || user_name == '' ? globalConfig?.characterConfig?.yourName : user_name
+    //     console.log("1.键盘输入消息 UserMessage:", yourName, content)
 
-        setChatProcessing(true);
+    //     setChatProcessing(true);
 
-        console.log("动作：思考1")
-        handleBehaviorAction([{ "emote": "happy", time: -1, action: "thinking" }]);
+    //     console.log("动作：思考1")
+    //     handleEmotes([{ "emote": "happy", time: -1, action: "thinking" }]);
 
-        await chat(content, yourName).catch(
-            (e) => {
-                console.error(e);
-                return null;
-            }
-        );
+    //     await chat(content, yourName).catch(
+    //         (e) => {
+    //             console.error(e);
+    //             return null;
+    //         }
+    //     );
 
-        console.log("动作：说完话1")
-        handleBehaviorAction([{ "emote": "neutral", time: -1, action: "idle_01" }]);
+    //     console.log("动作：说完话1")
+    //     handleEmotes([{ "emote": "neutral", time: -1, action: "idle_01" }]);
 
-        setChatProcessing(false);
-    }, [systemPrompt, setImageUrl, openAiKey, koeiroParam]);
+    //     setChatProcessing(false);
+    // }, [systemPrompt, setImageUrl, openAiKey, koeiroParam]);
 
     let lastSwitchTime = 0;
 
@@ -280,18 +276,18 @@ export default function Home() {
         const data = event.data;
         const chatMessage = JSON.parse(data);
         const type = chatMessage.message.type;
-        console.log("1.收到消息：", chatMessage)
 
         if (type === "user") {
+            console.log("1.收到消息-回复弹幕：", chatMessage)
             // 回复弹幕
             if ((chatMessage.message.content as string).trim()) {
                 msgList.push(chatMessage.message);
             }
-            handleUserMessage(webGlobalConfig);
+            popMsg(webGlobalConfig);
         } else if (type === "behavior_action") {
-            handleBehaviorAction(chatMessage.message.emote);
+            // handleEmotes(chatMessage.message.emote);
         } else if (type === "danmaku") {
-            // // 弹幕提问
+            console.log("1.收到消息-弹幕提问：", chatMessage)
             // if ((chatMessage.message.content as string).trim()) {
             //     msgList.push(chatMessage.message);
             // }
@@ -331,7 +327,7 @@ export default function Home() {
         // ]
         // setInterval(() => {
         //     // ["neutral", "happy", "angry", "sad", "relaxed"]
-        //     handleBehaviorAction("behavior_action", "idle_01", elist);
+        //     handleEmotes("behavior_action", "idle_01", elist);
         // }, 30000);
     }
 

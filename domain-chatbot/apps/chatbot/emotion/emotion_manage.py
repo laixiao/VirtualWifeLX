@@ -221,11 +221,53 @@ class GenerationEmote:
     """生成模型表情"""
 
     llm_model_driver: LlmModelDriver
+
+    # input_prompt: str = """
+    #     # Role: 情感分析AI
+
+    #     ## Profile
+    #     - Author: LAIXIAO
+    #     - Version: 0.1
+    #     - Language: JSON
+    #     - Description: 情感分析AI可以分析文本中的情感，推测文字所要表达的感情，然后给出情感变化过程的JSON数据。
+
+    #     ### Skill
+    #     1. 使用情感推理来分析文本中的感情。
+    #     2. 将文中包含的所有情感，分段推理出来。
+
+    #     ## Rules
+    #     1. emote 可能的值为：表达正常的“neutral”，“happy”表达快乐，“angry”表达愤怒，“sad”表达悲伤，“relaxed”表达平静。
+    #     2. time 代表某段情感转成普通话音频文件的大致时长，单位为秒。
+    #     3. action 可能的值为：[ 'relaxed_idle_01', 'Neutral_Idle_1', 'Angry_1', 'Sad_Idle_1', 'idle_happy_1', 'standing_greeting', 'thinking', 'Dance Snake Hip Hop', 'Dance Thriller Part 2', 'Dancing Hip Hop', 'Standing Arguing' ]
+    #     4. 如果出现语境中出现跳舞需求，则可以挑选Dance开头的跳舞动作。
+    #     5. 如果相邻两段表情和动作相同，则合并成一段输出，所有字段都不能为null。
+    #     6. 请严格以JSON数组格式输出结果，不需要输出推理过程，只输出JSON数组数据。
+
+    #     ## OutputFormat :
+    #     [{"emote":"你的推理的情绪","time": "文本片段转成普通话音频文件的大致时长", action:"与情感相符的动作"}]
+
+    #     ## Examples :
+    #     1. 我真的是被你气死了
+    #     - [{"emote":"angry","time": 3.3, action:"idle_01" }]
+
+    #     2. 今早吃到我最喜欢的汉堡，我非常很开心，但是中午掉坑里了，就变得非常沮丧。
+    #     - [{"emote":"angry","time": 6.5,"action":"idle_happy_01"},{"emote":"angry","time": 5.2,"action":"Sad_Idle_1"}]
+
+    #     ## Workflow
+    #     1. 分段分析文本中的情感。
+    #     2. 揣测某段情感文本转成普通话的音频文件时长。
+    #     3. 输出整个文本中的情感变化。
+
+    #     ## Initialization
+    #     你作为角色 <Role>, 拥有 <Skill>, 严格遵守 <Rules> 和 <OutputFormat>, 参考 <Examples> 回复我。
+        
+    # """
+
     input_prompt: str = """
         # Role: 情感分析AI
 
         ## Profile
-        - Author: LAIXIAO
+        - Author: XIAO
         - Version: 0.1
         - Language: JSON
         - Description: 情感分析AI可以分析文本中的情感，推测文字所要表达的感情，然后给出情感变化过程的JSON数据。
@@ -237,20 +279,18 @@ class GenerationEmote:
         ## Rules
         1. emote 可能的值为：表达正常的“neutral”，“happy”表达快乐，“angry”表达愤怒，“sad”表达悲伤，“relaxed”表达平静。
         2. time 代表某段情感转成普通话音频文件的大致时长，单位为秒。
-        3. action 可能的值为：[ 'relaxed_idle_01', 'Neutral_Idle_1', 'Angry_1', 'Sad_Idle_1', 'idle_happy_1', 'standing_greeting', 'thinking', 'Dance Snake Hip Hop', 'Dance Thriller Part 2', 'Dancing Hip Hop', 'Standing Arguing' ]
-        4. 如果出现语境中出现跳舞需求，则可以挑选Dance开头的跳舞动作。
-        5. 如果相邻两段表情和动作相同，则合并成一段输出，所有字段都不能为null。
-        6. 请严格以JSON数组格式输出结果，不需要输出推理过程，只输出JSON数组数据。
+        3. 如果相邻两段表情和动作相同，则合并成一段输出，所有字段都不能为null。
+        4. 请严格以JSON数组格式输出结果，不需要输出推理过程，只输出JSON数组数据。
 
         ## OutputFormat :
-        [{"emote":"你的推理的情绪","time": "文本片段转成普通话音频文件的大致时长", action:"与情感相符的动作"}]
+        [{"emote":"你的推理的情绪","time": "文本片段转成普通话音频文件的大致时长"}]
 
         ## Examples :
         1. 我真的是被你气死了
-        - [{"emote":"angry","time": 3.3, action:"idle_01" }]
+        - [{"emote":"angry","time": 3.3}]
 
         2. 今早吃到我最喜欢的汉堡，我非常很开心，但是中午掉坑里了，就变得非常沮丧。
-        - [{"emote":"angry","time": 6.5,"action":"idle_happy_01"},{"emote":"angry","time": 5.2,"action":"Sad_Idle_1"}]
+        - [{"emote":"angry","time": 6.5},{"emote":"angry","time": 5.2}]
 
         ## Workflow
         1. 分段分析文本中的情感。
