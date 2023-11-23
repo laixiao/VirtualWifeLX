@@ -15,7 +15,7 @@ const VideoBackground = () => {
 
     return (
         <video style={videoStyle} autoPlay loop muted>
-            <source src="http://localhost:3000/bg/video1.mp4" type="video/mp4" />
+            <source src="http://localhost:3000/bg/1夜晚咖啡店-抖抖素材屋.mp4" type="video/mp4" />
             Your browser does not support the video tag.
         </video>
     );
