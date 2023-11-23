@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import VrmViewer from "@/components/vrmViewer";
+import VideoBackground from "@/components/VideoBackground";
 import { ViewerContext } from "@/features/vrmViewer/viewerContext";
 import { EmotionType, Message, Screenplay, textsToScreenplay, } from "@/features/messages/messages";
 import { speakCharacter } from "@/features/messages/speakCharacter";
@@ -333,16 +334,10 @@ export default function Home() {
     }
 
     return (
-        <div
-            style={{
-                backgroundImage: `url(${backgroundImageUrl})`,
-                backgroundSize: 'cover',
-                width: '100%',
-                height: '100vh',
-                position: 'relative',
-                zIndex: 1,
-                backgroundPosition: "center"
-            }}>
+        <div style={{ backgroundImage: `url(${backgroundImageUrl})`, backgroundSize: 'cover', width: '100%', height: '100vh', position: 'relative', zIndex: 1, backgroundPosition: "center" }}>
+            
+            <VideoBackground />
+            
             <div>
                 <Meta />
                 <Introduction openAiKey={openAiKey} onChangeAiKey={setOpenAiKey} />
